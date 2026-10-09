@@ -1,0 +1,16 @@
+node_modules/
+data/
+.env
+.env.*
+*.env
+*.pem
+*.key
+*.p12
+*.log
+dashboard/dist/
+dist/
+releases/
+*.tar.gz
+*.zip
+.DS_Store
+coverage/
