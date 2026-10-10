@@ -8,7 +8,7 @@
 - Pod `tradepilot-55796d589c-qdsxz`: 1/1 Ready, zero restarts at verification. The deployed account-monitor module hash also matches the reviewed source.
 - All 110 tests passed before release. Three new regressions cover third-failure cooldown persistence across restart and missing/invalid/normalized collateral identity. Committed history and source privacy checks found no leaks.
 - Public health/session checks confirm both mainnet and testnet orders disabled; local observation and monitor endpoints are unavailable publicly. The public guided case remains synthetic and its downloaded evidence independently replays.
-- No private account evidence or credentials were deployed. No real account collection was retried; prior HTTP 451 remains unresolved. Interactive browser acceptance was not repeated in this release.
+- No private account evidence or credentials were deployed. No real account collection was retried during deployment. A later bounded diagnostic corrected an inherited lowercase proxy-bypass setting and succeeded once; see `ACCOUNT_MONITOR.md`. Interactive browser acceptance was not repeated in this release.
 - Rollback manifest `releases/ddc14b8369fb/previous-demo.yaml` restores image `443174e50e95`. This is the existing manual K3s deployment, not a CI/Flux release.
 
 ---

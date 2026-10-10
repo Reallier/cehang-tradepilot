@@ -7,8 +7,11 @@ The account workspace includes observation-to-observation risk changes. Public v
 Use the existing independently enrolled testnet read-only credentials and eligibility configuration:
 
 ```sh
-node --use-env-proxy --env-file=data/account-readonly/credentials.env scripts/watch-account.mjs --config data/account-readonly/config.json --cycles 15
+NO_PROXY=testnet.perpl.xyz,perpl.xyz,.perpl.xyz no_proxy=testnet.perpl.xyz,perpl.xyz,.perpl.xyz \
+  node --use-env-proxy --env-file=data/account-readonly/credentials.env scripts/watch-account.mjs --config data/account-readonly/config.json --cycles 15
 ```
+
+Both bypass variables are intentional for the previously verified local route: Node’s environment proxy agent gives `no_proxy` precedence over `NO_PROXY`. An inherited lowercase value can silently override an uppercase-only setting. Merge other required bypass entries for your environment; this is not an instruction to override protocol eligibility or a persistent restriction.
 
 This is an explicitly started, bounded process, not a permanently scheduled account monitor. It permits 1–30 rounds, defaults to 15, and stops after at most 30 minutes plus any in-flight bounded request. Each round reads chain ID, wallet, positions, context and chain head sequentially. At least 60 seconds elapse after a successful round before another starts. Existing protocol restriction state and eligibility gates are preserved.
 
@@ -38,10 +41,17 @@ Open `http://127.0.0.1:8780/?tab=account`. Choose **读取最新观察** or **�
 
 ## Acceptance — 2026-10-10
 
-110 automated tests pass, including concurrency/cooldown persistence, rate-limit backoff, auth/validation stop, missing/stale inputs, wallet mismatch, signed position changes, and public-route denial. Production build passes. Private live collection encountered HTTP 451 and stopped before a usable observation was collected; readiness configuration was present and no existing persistent restriction flag was cleared. A single bounded diagnostic identified the HTTP status. No further collection or proxy change was attempted.
+110 automated tests pass, including concurrency/cooldown persistence, rate-limit backoff, auth/validation stop, missing/stale inputs, wallet mismatch, signed position changes, and public-route denial. Production build passes. Private live collection encountered HTTP 451 and stopped before a usable observation was collected; readiness configuration was present and no existing persistent restriction flag was cleared. A single bounded diagnostic identified the HTTP status. At that release check no further collection or proxy change was attempted; the later diagnostic below supersedes the access-failure status.
 
-Actual continuous account updates therefore remain **unaccepted** pending an eligible environment or protocol resolution. The new UI and synthetic risk-change example do not constitute evidence that live account refresh works. Interactive browser acceptance remains pending under the previously encountered Computer Use restriction.
+Sustained continuous account updates remain **unaccepted**; the later single-cycle diagnostic establishes only bounded read access at that time. The UI and synthetic risk-change example are not evidence of continuous refresh. Interactive browser acceptance remains pending under the previously encountered Computer Use restriction.
 
 ## Publication review fixes — 2026-10-10
 
 Three new regression tests cover the third-429 stop/serialization/manual-restart path, missing or invalid asset identity on either side, and address case normalization versus changed token precision or address. These fixes were published and deployed in release `ddc14b8369fb`; see `PUBLIC_LAUNCH.md` for runtime and public HTTP evidence. No real account refresh was retried.
+
+
+## Proxy-routing correction — 2026-10-10 19:44 Asia/Shanghai
+
+The earlier monitor invocation set only uppercase `NO_PROXY`, while inherited lowercase `no_proxy` remained present. The installed Node environment proxy agent selects `process.env.no_proxy ?? process.env.NO_PROXY`; the uppercase override therefore did not establish the intended Perpl direct route. The previously successful account/history commands set both variables.
+
+Restoring both variables to the previously verified Perpl bypass and running `--cycles 1` succeeded: testnet chain 10143, account report `empty_positions`, zero validation issues. The last success was `2026-10-10T11:44:03.338Z`; the collector then stopped normally with no failure code. No persistent restriction or eligibility state was cleared or rewritten, no order was submitted, and no ongoing polling was enabled. The private packet remains local and excluded from GitHub and public hosting.

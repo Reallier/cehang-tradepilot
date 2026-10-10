@@ -14,7 +14,7 @@ The demo is deployed over HTTPS; see docs/PUBLIC_LAUNCH.md for its verified rele
 
 Start with the [judge walkthrough](docs/JUDGE_GUIDE.md) and [existing-foundation / competition-work disclosure](docs/BUILD_DISCLOSURE.md).
 
-Current verification: **110 automated tests pass**. The latest attempted real account refresh returned **HTTP 451** and the bounded collector stopped; continuous live-account refresh is not accepted. Earlier saved testnet lifecycle checks remain historical evidence, not a claim that account access currently works. Public account-update examples are explicitly synthetic. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
+Current verification: **110 automated tests pass**. A corrected local proxy-bypass invocation completed one real testnet read-only cycle on 2026-10-10 at 19:44 Asia/Shanghai (chain 10143, no open positions, no validation issues). An earlier HTTP 451 attempt had omitted the lowercase `no_proxy` override. This single cycle does not establish continuous refresh; the collector stopped at its configured one-cycle limit. Earlier saved testnet lifecycle checks remain historical evidence. Public account-update examples are explicitly synthetic. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
 
 ## Implemented scope
 
