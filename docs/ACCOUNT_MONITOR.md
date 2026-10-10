@@ -43,7 +43,7 @@ Open `http://127.0.0.1:8780/?tab=account`. Choose **读取最新观察** or **�
 
 110 automated tests pass, including concurrency/cooldown persistence, rate-limit backoff, auth/validation stop, missing/stale inputs, wallet mismatch, signed position changes, and public-route denial. Production build passes. Private live collection encountered HTTP 451 and stopped before a usable observation was collected; readiness configuration was present and no existing persistent restriction flag was cleared. A single bounded diagnostic identified the HTTP status. At that release check no further collection or proxy change was attempted; the later diagnostic below supersedes the access-failure status.
 
-Sustained continuous account updates remain **unaccepted**; the later single-cycle diagnostic establishes only bounded read access at that time. The UI and synthetic risk-change example are not evidence of continuous refresh. Interactive browser acceptance remains pending under the previously encountered Computer Use restriction.
+At that point, sustained continuous account updates remained **unaccepted**; the later single-cycle diagnostic established only bounded read access. The UI and synthetic risk-change example are not evidence of continuous refresh. A later public-demo walkthrough exercised the judge path; it did not open the local monitor file. The three-cycle run below is the current live-monitor evidence.
 
 ## Publication review fixes — 2026-10-10
 
@@ -55,3 +55,9 @@ Three new regression tests cover the third-429 stop/serialization/manual-restart
 The earlier monitor invocation set only uppercase `NO_PROXY`, while inherited lowercase `no_proxy` remained present. The installed Node environment proxy agent selects `process.env.no_proxy ?? process.env.NO_PROXY`; the uppercase override therefore did not establish the intended Perpl direct route. The previously successful account/history commands set both variables.
 
 Restoring both variables to the previously verified Perpl bypass and running `--cycles 1` succeeded: testnet chain 10143, account report `empty_positions`, zero validation issues. The last success was `2026-10-10T11:44:03.338Z`; the collector then stopped normally with no failure code. No persistent restriction or eligibility state was cleared or rewritten, no order was submitted, and no ongoing polling was enabled. The private packet remains local and excluded from GitHub and public hosting.
+
+## Three-cycle read — 2026-10-10 23:43 Asia/Shanghai
+
+The same proxy bypass and `--cycles 3` then completed three rounds, each logged as `observing` with no failure code. The retained pair is testnet chain 10143, report `empty_positions`, zero validation issues, the same wallet, and an increasing snapshot time. Evaluation times were `2026-10-10T15:42:24.757Z` and `2026-10-10T15:43:27.779Z`, 63 seconds apart. Each position-block time was within a few seconds of its local observation. The collector stopped at the requested limit, with `nextAttemptAt` left at `2026-10-10T15:44:27.779Z` and `failures` at 0. The file keeps at most two observations, so the first round is in the process log rather than `latest.json`. No order was submitted, and eligibility state was not rewritten.
+
+This accepts three consecutive bounded reads. It does not accept the default 15-round run, unattended scheduling, or a live recovery from HTTP 429 or 451. Those failure paths remain covered by automated tests only.

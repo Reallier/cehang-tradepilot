@@ -14,7 +14,7 @@ The demo is deployed over HTTPS; see docs/PUBLIC_LAUNCH.md for its verified rele
 
 Start with the [judge walkthrough](docs/JUDGE_GUIDE.md) and [existing-foundation / competition-work disclosure](docs/BUILD_DISCLOSURE.md).
 
-Current verification: **110 automated tests pass**. A corrected local proxy-bypass invocation completed one real testnet read-only cycle on 2026-10-10 at 19:44 Asia/Shanghai (chain 10143, no open positions, no validation issues). An earlier HTTP 451 attempt had omitted the lowercase `no_proxy` override. This single cycle does not establish continuous refresh; the collector stopped at its configured one-cycle limit. Earlier saved testnet lifecycle checks remain historical evidence. Public account-update examples are explicitly synthetic. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
+Current verification: **110 automated tests pass**. A corrected local proxy-bypass invocation completed three consecutive testnet read-only cycles on 2026-10-10 at 23:43 Asia/Shanghai (chain 10143, no open positions, no validation issues), after an earlier one-cycle success at 19:44. An earlier HTTP 451 attempt had omitted the lowercase `no_proxy` override. The collector stopped at the requested three-cycle limit. The default 15-cycle run, unattended polling, and live failure recovery are not accepted. Earlier saved testnet lifecycle checks remain historical evidence. Public account-update examples are explicitly synthetic. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
 
 ## Implemented scope
 
@@ -24,7 +24,7 @@ Current verification: **110 automated tests pass**. A corrected local proxy-bypa
 - Saved JSON evidence, hashes and complete local replay.
 - Account workspace: browser-local observation/history import, position stress, receipt/settlement review, pre-trade baseline comparison and replayable export. One-click synthetic guided case requires no wallet or files. See [account workflow](docs/ACCOUNT_WORKFLOW.md).
 - Collateral-aware portfolio stress, guided evidence import and direct pre-trade-baseline handoff.
-- Bounded loopback-only account monitoring, observation deltas and failure/staleness states. One local testnet read-only cycle succeeded on 2026-10-10 at 19:44 Asia/Shanghai; sustained continuous refresh is not accepted.
+- Bounded loopback-only account monitoring, observation deltas and failure/staleness states. Three consecutive local testnet read-only cycles succeeded on 2026-10-10 at 23:43 Asia/Shanghai. The default 15-cycle run and live failure recovery are not accepted.
 - Execution audit: five explicitly synthetic examples, including partial fills and missing evidence.
 - Position exit estimates: six synthetic scenarios; actual settlement values stay unknown.
 - Risk watch: eight synthetic stages, state deduplication and minimum refresh interval.

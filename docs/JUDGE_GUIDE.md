@@ -35,7 +35,7 @@ node scripts/replay.mjs /absolute/path/to/exported-review.json
 | Public UI | HTTPS deployment and resource checks; current source builds independently |
 | Local model and safety | 110 automated tests; synthetic coverage is identified explicitly |
 | Actual testnet lifecycle | Two previously collected user-operated long/full-close lifecycles; one with an earlier matching baseline. Saved-data replay only; private raw packets excluded |
-| Account continuous updates | One local testnet read-only cycle succeeded after correcting proxy bypass (2026-10-10 19:44 Asia/Shanghai); collector stopped at its one-cycle limit. Sustained continuous refresh is **not accepted** |
+| Account continuous updates | Three consecutive local testnet read-only cycles succeeded on 2026-10-10 at 23:43 Asia/Shanghai (chain 10143, empty positions, no validation issues). The collector stopped at the requested three-cycle limit. The default 15-cycle run, unattended polling, and live 429/451 recovery are **not accepted** |
 | Public wallet data | No owner account/credentials exposed; public update example is synthetic |
 | Model scope | No general strategy-profit claim; no independently established source provenance or consensus finality |
 | Human usability | No external-user comprehension or adoption evidence yet; automated checks are not user interviews |

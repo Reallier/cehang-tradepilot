@@ -15,7 +15,7 @@ The project records document the following work in the current competition itera
 - Baseline saved before an opening, with constrained time/parameter association and quantity-normalized price/fee comparison.
 - Same-snapshot plan comparison, local budgets, portfolio risk and collateral-aware aggregation.
 - Browser-local evidence import, per-trade lifecycle review, missing-evidence guidance and direct baseline handoff.
-- Bounded local account monitoring, freshness/backoff states and observation-to-observation risk changes. One local testnet read-only cycle succeeded after correcting proxy bypass (2026-10-10 19:44 Asia/Shanghai). Sustained continuous refresh is not accepted. See ACCOUNT_MONITOR.md.
+- Bounded local account monitoring, freshness/backoff states and observation-to-observation risk changes. Three consecutive local testnet read-only cycles succeeded on 2026-10-10 at 23:43 Asia/Shanghai. The collector stopped at the requested three-cycle limit. The default 15-cycle run and live failure recovery are not accepted. See ACCOUNT_MONITOR.md.
 - Dedicated HTTPS deployment and private user-operated testnet acceptance of the limited long/full-close workflow. Public cases remain synthetic.
 
 The initial public commit `c16f1785a93e98b7629df4235f0e22d5541d4c3f` is a publication baseline. **It is not a snapshot taken before the September 1 build window.** Comparing a later release to that commit shows later publication changes, not the complete set of work created during the competition. No commit dates or transaction timestamps have been backdated to suggest otherwise.
