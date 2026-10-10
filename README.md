@@ -4,20 +4,27 @@ Risk rehearsal and evidence-based strategy validation for Monad / Perpl traders.
 
 策航帮助交易者在提交交易前检查费用、深度、杠杆与压力情景，并把假设、数据快照和核对结果保存为可复算证据。参赛方向：链上金融与交易 / Perpl Analytics & Risk Tool。
 
-## Publication status
+## Current status
 
-**This is a public business-source release. It is not a complete standalone frontend distribution.**
+The repository now includes an independently buildable frontend and an isolated public-demo backend. It does not require or redistribute the proprietary Data app runtime. See [deployment instructions](docs/DEPLOYMENT.md).
 
-The backend, models, tests and authored React components are included. The local prototype uses the proprietary Data app runtime; that runtime, its compiler, template code and prebuilt bundles are intentionally absent while redistribution permission is unresolved. A fresh clone can run the backend tests and API, but cannot build or open the complete UI. Frontend integration imports are preserved and documented in [frontend-source/README.md](frontend-source/README.md).
+The demo is deployed over HTTPS; see docs/PUBLIC_LAUNCH.md for its verified release. Real-money and testnet trading remain disabled in the demo server. One private testnet long opening and full close have been reconciled against API history and chain events, including trading PnL and both fees (docs/HISTORY_ACCEPTANCE.md). A second testnet lifecycle has also passed a real pre-trade-baseline-to-fill-to-full-close comparison, with zero remaining positions; demo videos remain pending. The account workspace offers an explicitly synthetic, reproducible end-to-end example without keys or private files.
 
-GitHub publication does not establish Monad end-to-end settlement, a public HTTPS demo, real users, profitability or competition acceptance. Actual account / chain validation and demo videos remain pending. Real-money trading is disabled.
+## Judge entry and current boundary
+
+Start with the [judge walkthrough](docs/JUDGE_GUIDE.md) and [existing-foundation / competition-work disclosure](docs/BUILD_DISCLOSURE.md).
+
+Current verification: **110 automated tests pass**. The latest attempted real account refresh returned **HTTP 451** and the bounded collector stopped; continuous live-account refresh is not accepted. Earlier saved testnet lifecycle checks remain historical evidence, not a claim that account access currently works. Public account-update examples are explicitly synthetic. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
 
 ## Implemented scope
 
 - Read-only Perpl public context, order book and completed candles.
 - Fee, funding, depth, margin and stress estimates, with unknown inputs kept unknown.
-- Two independent scenarios compared against the same market snapshot.
+- Two scenarios compared against the same market snapshot, with local margin/loss budgets and parameter transfer to a fresh preview.
 - Saved JSON evidence, hashes and complete local replay.
+- Account workspace: browser-local observation/history import, position stress, receipt/settlement review, pre-trade baseline comparison and replayable export. One-click synthetic guided case requires no wallet or files. See [account workflow](docs/ACCOUNT_WORKFLOW.md).
+- Collateral-aware portfolio stress, guided evidence import and direct pre-trade-baseline handoff.
+- Bounded loopback-only account monitoring, observation deltas and failure/staleness states; actual continuous refresh remains blocked as described above.
 - Execution audit: five explicitly synthetic examples, including partial fills and missing evidence.
 - Position exit estimates: six synthetic scenarios; actual settlement values stay unknown.
 - Risk watch: eight synthetic stages, state deduplication and minimum refresh interval.
@@ -29,6 +36,7 @@ Node.js >=24.5 is required. Node 26 was used for local verification.
 
 ```sh
 npm ci --ignore-scripts --no-audit --no-fund
+npm run build
 npm test
 npm run scan:privacy
 npm start
@@ -38,12 +46,13 @@ The service listens only on `127.0.0.1:8780`. Use `TP_PORT=18780 npm start` for 
 
 ```sh
 curl http://127.0.0.1:8780/api/health
-curl 'http://127.0.0.1:8780/api/execution-audit?example=full'
+curl -c /tmp/tradepilot-demo.cookies http://127.0.0.1:8780/api/session
+curl -b /tmp/tradepilot-demo.cookies 'http://127.0.0.1:8780/api/execution-audit?example=full'
 ```
 
-See source exports in `server/execution-examples.mjs` for valid example identifiers. The `/` route returns a missing-frontend response in this source-only checkout. This is expected, not a deployed UI.
+Open `http://127.0.0.1:8780/` for the complete UI. API routes except health require a visitor cookie: obtain it through `/api/session` first. The examples endpoint uses synthetic data; it does not contact an exchange.
 
-The demo launcher removes inherited Perpl API key variables and forces testnet orders off. It does not load an environment file. State is created in ignored `data/private/`; `TP_DATA_DIR` may point to a separate private location. Never expose this local shared-state API directly to the internet.
+Both the launcher and server enforce the credential-free demo boundary. Visitor records are isolated in memory, expire after 30 minutes and disappear on restart. Export records you need to keep. Shared protocol restriction state is stored in ignored `data/public-demo/`. Configure HTTPS and an explicit domain allowlist before exposing the service.
 
 To replay an exported evidence file:
 
@@ -55,11 +64,13 @@ Hashes and replay check internal consistency; they do not authenticate an upstre
 
 ## Repository map
 
+The local read-only CLI has passed one actual Perpl test-account observation and private replay (2026-10-10): an initial deposit-only observation, followed by a long opening and full close. See [account read-only acceptance and boundaries](docs/ACCOUNT_READONLY.md). Current acceptance details and boundaries are in docs/HISTORY_ACCEPTANCE.md. Host credentials and private account data are not exposed through the public demo.
+
 | Path | Purpose |
 |---|---|
 | `server/` | API, risk calculations, persistence, protocol adapter and receipt verification |
 | `tests/` | Model, event decoding, safety and workflow tests using synthetic fixtures |
-| `frontend-source/` | Authored React components and scoped styling; runtime not included |
+| `frontend-source/` | Independent React shell, charts, evidence components and business pages |
 | `scripts/replay.mjs` | Recompute exported evidence |
 | `docs/MODEL.md` | Formulas, assumptions and interpretation limits |
 | `docs/PUBLICATION_REVIEW.md` | Publication scope and privacy check results |
@@ -70,4 +81,8 @@ The repository is publicly readable; no open-source license has yet been granted
 
 ## 中文说明
 
-本仓库发布的是可审阅、可测试的业务源码。完整前端目前仍依赖未随仓库发布的专有运行时，直接克隆后可以运行后端与测试，不能直接构建完整页面。合成演练不计为真实交易、用户或收益；真实资金交易继续关闭。
+完整前端已迁移为独立实现，可从公开源码构建，无需安装 Codex 插件。公网演示适配加入域名校验、访客会话隔离和有界限流；本地验收不等于公网部署完成。合成演练不计为真实交易、用户或收益。真实资金和测试网交易均关闭。现已完成一次私有测试网多头开仓、全部平仓与结算核对；另一次测试网交易已通过事前基线、成交偏差、全部平仓及结算核验，最新观察为空仓，详见 docs/HISTORY_ACCEPTANCE.md。
+
+## Public demonstration
+
+Open [CeHang TradePilot](https://reallier.com/demos/tradepilot/). Trading is disabled; visitor records are temporary. See [public launch evidence and limits](docs/PUBLIC_LAUNCH.md).

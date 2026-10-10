@@ -17,9 +17,9 @@ export function executionExample(id){
  const spec={rq:8,mkt:1,acc:7,t:1,p:0,s:result.rawSize,ms:25,mnp:0,fl:4,lv:300,lb:0};
  const filled=id==='zero'?0:id==='partial'?250:500,fee=id==='zero'?0:id==='partial'?25065:50128;
  const event=(name,args,index)=>({...exchangeInterface.encodeEventLog(exchangeInterface.getEvent(name),args),address:exchange,logIndex:`0x${index.toString(16)}`,transactionHash:txHash,blockHash,blockNumber:'0x65',removed:false});
- const logs=[event('OrderRequest',[1,7,8,0,1,0,500,0,false,false,true,0,300,0,0,0,0],1)];
+ const logs=[event('OrderRequest',[1,7,8,0,0,0,500,0,false,false,true,0,300,0,0,0,0],1)];
  if(filled)logs.push(event('TakerOrderFilled',[10025,10025,10025,filled,fee,0,1000000],2));
- const order={rq:8,mkt:1,acc:7,t:1,os:500,fs:filled,fp:filled?10025:0,f:String(fee),st:id==='zero'?5:id==='partial'?3:4,at:{t:now+4000,b:101,l:filled?2:1,txid:txHash}};
+ const order={rq:8,mkt:1,acc:7,t:1,os:500,fs:filled,fp:filled?10025:0,f:String(fee),st:id==='zero'?5:id==='partial'?3:4,at:{t:now+4000,b:101,l:filled?1:0,txid:txHash}};
  const receipt={status:'0x1',transactionHash:txHash,blockNumber:'0x65',blockHash,logs};
  const transaction={hash:txHash,chainId:'0x279f',blockNumber:'0x65',blockHash};
  const intent={id:`sample_${id}`,synthetic:true,source:'local_synthetic_fixture',chainId:10143,accountId:7,createdAt:new Date(now+1000).toISOString(),spec,result,estimateEvidence:estimateEvidence(context,book,result),

@@ -1,7 +1,7 @@
 import {hash} from './store.mjs';
 import {simulate,marketRow} from './risk.mjs';
 import {NETWORKS} from './perpl.mjs';
-import {decodeReceipt} from './events.mjs';
+import {decodeReceipt,normalizeTxHash} from './events.mjs';
 import {estimateEvidence} from './execution-audit.mjs';
 const pendingStates=['submitting','unknown','forwarded','pending','partial'];
 export class Orders {
@@ -92,7 +92,7 @@ export class Orders {
     const history=await this.history('/v1/trading/order-history');const matches=history.rows.filter(o=>o.rq===intent.spec.rq&&o.acc===intent.spec.acc&&o.mkt===intent.spec.mkt);
     const order=matches.sort((a,b)=>(b.at.b??0)-(a.at.b??0)||(b.at.l??0)-(a.at.l??0))[0];
     if(!order)return this.store.save(id,{...intent,reconciliation:{status:'not_found',coverage:history.complete?'complete':'bounded_500',note:'未找到不能证明未成交；保持原提交状态并停止重试'},updatedAt:new Date().toISOString()});
-    const txHash=order.at.txid;
+    const txHash=normalizeTxHash(order.at.txid);
     const statusMap={1:'pending',2:'pending',3:'partial',4:'filled',5:'cancelled',6:'expired',7:'failed',8:'pending',9:'pending',10:'executed'};
     const status=statusMap[order.st]??'unknown';let chainVerified=false,receipt=null,transaction=null,events=null;
     const ctx=await this.perpl.context('testnet'),instance=ctx.value.instances.find(i=>i.id===ctx.value.markets.find(m=>m.id===order.mkt)?.instance_id);
@@ -103,7 +103,7 @@ export class Orders {
       chainVerified=Boolean(receipt&&receipt.status==='0x1'&&receipt.transactionHash.toLowerCase()===txHash.toLowerCase()
         &&Number(BigInt(receipt.blockNumber))===order.at.b
         &&transaction&&transaction.hash.toLowerCase()===txHash.toLowerCase()
-        &&receipt.logs?.some(l=>l.address.toLowerCase()===instance.address.toLowerCase()&&l.logIndex!=null&&Number(BigInt(l.logIndex))===order.at.l));
+        &&receipt.logs?.some((l,index)=>l.address.toLowerCase()===instance.address.toLowerCase()&&index===order.at.l));
       if(chainVerified){const market=ctx.value.markets.find(m=>m.id===order.mkt);events=decodeReceipt(receipt,{exchange:instance.address,perpetualId:market.perpetual_id,accountId:intent.spec.acc,requestId:intent.spec.rq,orderType:intent.spec.t,rawSize:intent.spec.s,apiOrder:order});chainVerified=events.verified;}
     }
     const pd=ctx.value.markets.find(m=>m.id===order.mkt).config.price_decimals;

@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import {createHash,randomUUID} from 'node:crypto';
-export const hash = value => createHash('sha256').update(typeof value==='string'?value:JSON.stringify(value)).digest('hex');
+import {randomUUID} from 'node:crypto';
+export {hash} from './integrity.mjs';
 export class Store {
   constructor(root) {this.root=root;fs.mkdirSync(root,{recursive:true,mode:0o700});fs.chmodSync(root,0o700);}
   file(id){if(!/^[a-zA-Z0-9_-]+$/.test(id))throw new Error('记录ID无效');return path.join(this.root,`${id}.json`);}

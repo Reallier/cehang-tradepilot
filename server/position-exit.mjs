@@ -1,4 +1,4 @@
-import {positionRisk,bookRows,marketRow} from './risk.mjs';
+import {positionRisk,bookRows,marketRow,positionStampWithinSnapshot} from './risk.mjs';
 import {hash} from './store.mjs';
 export const EXIT_VERSION='position-exit-v1';
 
@@ -31,7 +31,7 @@ export function analyzeExit({position,context,book,snapshotAt,input,feeTier=null
     if(!Number.isFinite(t)||now-t>45000||t>now+5000)blockers.push(`${label}超出45秒新鲜度窗口`);
   for(const [label,b] of [['仓位',snapshotAt.b],['市场',row.block],['退出盘口',book.at?.b]])
     if(!Number.isSafeInteger(b)||!Number.isSafeInteger(context.chain.gas.h)||b>context.chain.gas.h)blockers.push(`${label}区块尚未由上下文链头覆盖`);
-  if(!Number.isFinite(position.at?.t)||position.at.t>snapshotAt.t+5000||!Number.isSafeInteger(position.at?.b)||position.at.b>snapshotAt.b)blockers.push('仓位最后更新时间或区块与读取快照不一致');
+  if(!positionStampWithinSnapshot(position.at,snapshotAt))blockers.push('仓位最后更新时间或区块与读取快照不一致');
   if(!row.open)blockers.push('市场暂停；估算不表示可以执行');
   if(remaining)blockers.push('公开退出盘口不足；以下损益仅覆盖可匹配数量');
   if(r.fundingPnl==null)blockers.push('已应用资金结算信息未知，权益和净损益保持未知');

@@ -1,0 +1,33 @@
+[Unit]
+Description=CeHang TradePilot isolated public demo
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=tradepilot
+Group=tradepilot
+WorkingDirectory=/opt/cehang-tradepilot
+# Install a dedicated supported Node runtime here; do not replace shared Node.
+ExecStart=/opt/tradepilot-node/bin/node --use-env-proxy server/index.mjs
+Environment=NODE_ENV=production
+Environment=TP_PORT=8780
+Environment=TP_DATA_DIR=/var/lib/tradepilot-demo
+Environment=TP_PUBLIC_ORIGIN=https://demo.example.org
+StateDirectory=tradepilot-demo
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+CapabilityBoundingSet=
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LimitNOFILE=4096
+TasksMax=128
+MemoryMax=512M
+
+[Install]
+WantedBy=multi-user.target

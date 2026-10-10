@@ -1,4 +1,11 @@
 export const MODEL_VERSION = 'isolated-linear-v1';
+// The REST snapshot carries observation time; per-position update fields are optional.
+// Validate fields when present without inventing an update timestamp from the envelope.
+export function positionStampWithinSnapshot(at,snapshotAt) {
+  if(!at||typeof at!=='object'||Array.isArray(at)||!Number.isSafeInteger(snapshotAt?.b)||snapshotAt.b<0||!Number.isFinite(snapshotAt?.t))return false;
+  return (at.b===undefined||(Number.isSafeInteger(at.b)&&at.b>=0&&at.b<=snapshotAt.b))&&
+    (at.t===undefined||(Number.isFinite(at.t)&&at.t>=0&&at.t<=snapshotAt.t+5000));
+}
 const number = (v, name) => { if(v==null||typeof v==='boolean'||String(v).trim()==='')throw new Error(`${name} 不可为空`); const n = Number(v); if (!Number.isFinite(n)) throw new Error(`${name} 必须是有限数值`); return n; };
 const positive = (v, name) => { const n = number(v, name); if (n <= 0) throw new Error(`${name} 必须大于 0`); return n; };
 export function marketRow(market, context) {
@@ -94,7 +101,7 @@ export function simulate({market, context, book, input, now=Date.now(), feeTier=
       '费用和PnL以抵押代币计价，不保证AUSD兑美元价格；不包含实际gas、延迟和其他订单竞争'],
     stressRows:[-20,-10,-5,0,5,10,20].map(change=>{const price=row.markPrice*(1+change/100),pnl=funding==null?null:matched*(price-vwap)*sign-entryFee-matched*price*feeRate-funding;return {changePct:change,price,netPnl:pnl,equity:pnl==null?null:margin+pnl,classification:'simulation'};})};
 }
-export function positionRisk(position,market,context,now=Date.now(),snapshotMs=position.at.t) {
+export function positionRisk(position,market,context,now=Date.now(),snapshotMs=position.at?.t) {
   const row=marketRow(market,context),sign=position.sd===1?1:position.sd===2?-1:null;
   if(sign==null)throw new Error('无法解释仓位方向');
   if(row.markPrice<=0)throw new Error('标记价格必须大于0');
@@ -117,6 +124,6 @@ export function positionRisk(position,market,context,now=Date.now(),snapshotMs=p
     fundingPnl,unrealizedPnl:fundingKnown?grossPnl+fundingPnl:null,indicativeEntryFee:fee,
     equity,maintenanceEstimate:maintenance,liquidationEstimate:liquidation,
     marginBuffer:equity==null||maintenance==null?null:equity-maintenance,status:stale||!fundingKnown||maintenance==null?'incomplete':equity<=maintenance?'at_risk':'above_estimated_margin',
-    sourceTime:new Date(position.at.t).toISOString(),marketTime:row.sourceTime,
+    sourceTime:Number.isFinite(position.at?.t)?new Date(position.at.t).toISOString():null,marketTime:row.sourceTime,
     note:'实际仓位的估算风险；入场费已由协议收取，不再从仓位权益重复扣除。保留Q16价格余数。未来资金事件或陈旧数据标为不完整。'};
 }

@@ -1,5 +1,5 @@
 import React,{useEffect,useState} from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {EvidencePanel} from '../ui.jsx';
 const tasks=[['costs','指出入场、退出与资金费用'],['comparison','解释相同金额下杠杆对保证金与费用的影响'],['evidence','找到并下载关联对比证据'],['limits','说明压力情景、清算估算与实际成交的区别']];
 const origins={internal:'内部演练',external:'外部观察',automated:'自动验收'};
 export const emptyStudy=()=>({participant:'',origin:'internal',comparisonId:'',role:'',notes:'',consent:false,tasks:tasks.map(([id])=>({id,outcome:'not_attempted',seconds:null}))});
@@ -23,9 +23,9 @@ export function UserStudy({api,run,busy,session,download,onOpenEvidence,form,set
  <button disabled={busy||!session||!form.comparisonId||!form.participant||!form.consent} onClick={()=>run(async()=>{await api('/api/usability',form);setForm(emptyStudy());setSaved(true);await refresh();})}>保存任务观察</button>{saved&&<p role="status">任务观察已保存本地，关联证据已复算核验。</p>}{error&&<p role="alert">{error}</p>}
  </div>
  <div className="tp-panel"><h3>观察汇总与导出</h3><p className="tp-note">来源由录入者填写，未经独立访谈认证；场次数不能当作用户数。未尝试不计分母，未测耗时保留为空。关联证据失效时不计入统计。</p><div className="tp-comparison-actions"><button onClick={refresh}>刷新观察</button><button disabled={!data?.records.length} onClick={()=>download(data,'tradepilot-task-observations.json')}>导出观察JSON</button></div>
- <DataComponent id="tp-user-study" queryId="usability" title="按来源分组的任务观察" kind="table" displayRows={sourceRows} sourceRows={sourceRows}>
+ <EvidencePanel id="tp-user-study" queryId="usability" title="按来源分组的任务观察" kind="table" displayRows={sourceRows} sourceRows={sourceRows}>
  <div data-reviewed-rows>{(data?.summaries??[]).map(group=><section className="tp-study-group" key={group.origin}><h3>{origins[group.origin]} · {group.sessions} 场有效观察</h3>{group.origin==='automated'&&<p className="tp-note">仅为流程检查，不代表真人理解。</p>}<table className="tp-comparison-table"><thead><tr><th>任务</th><th>{group.origin==='automated'?'通过 / 检查':'独立 / 尝试'}</th><th>均时 / 实测数</th></tr></thead><tbody>{group.tasks.map((t,i)=><tr key={t.id}><th>{i+1}. {tasks[i][1]}</th><td>{t.unassisted} / {t.attempted}</td><td>{t.meanSeconds===null?'未测':`${t.meanSeconds.toFixed(1)} 秒`} / {t.measured}</td></tr>)}</tbody></table></section>)}</div>
- </DataComponent>
+ </EvidencePanel>
  {(data?.records??[]).map(r=><p className="tp-note" key={r.id}>{r.participant} · {origins[r.origin]} · {new Date(r.createdAt).toLocaleString('zh-CN')} · {r.integrity==='valid'?'证据有效':`不计入统计：${r.integrityError}`}</p>)}
  </div></section>;
 }

@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tradepilot-demo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tradepilot
+  namespace: tradepilot-demo
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels: {app: tradepilot}
+  template:
+    metadata:
+      labels: {app: tradepilot}
+    spec:
+      automountServiceAccountToken: false
+      nodeSelector:
+        kubernetes.io/hostname: __NODE_NAME__
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: app
+          image: __IMAGE__
+          imagePullPolicy: Never
+          ports: [{containerPort: 8780, name: http}]
+          env:
+            - {name: NODE_ENV, value: production}
+            - {name: TP_PUBLIC_ORIGIN, value: 'https://reallier.com'}
+            - {name: TP_BASE_PATH, value: /demos/tradepilot}
+            - {name: TP_LISTEN_HOST, value: '0.0.0.0'}
+            - {name: TP_DATA_DIR, value: /state/protocol}
+            - {name: TP_ENABLE_TESTNET_ORDERS, value: 'false'}
+            - {name: HTTPS_PROXY, value: '__OUTBOUND_PROXY__'}
+            - {name: HTTP_PROXY, value: '__OUTBOUND_PROXY__'}
+            - {name: NO_PROXY, value: '127.0.0.1,localhost'}
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: '1', memory: 512Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:
+            - {name: state, mountPath: /state}
+            - {name: tmp, mountPath: /tmp}
+          readinessProbe:
+            httpGet:
+              path: /demos/tradepilot/api/health
+              port: http
+              httpHeaders: [{name: Host, value: reallier.com}]
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /demos/tradepilot/api/health
+              port: http
+              httpHeaders: [{name: Host, value: reallier.com}]
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: state
+          persistentVolumeClaim: {claimName: tradepilot-state}
+        - name: tmp
+          emptyDir: {medium: Memory, sizeLimit: 16Mi}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tradepilot-state
+  namespace: tradepilot-demo
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests: {storage: 128Mi}
+  storageClassName: local-path
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tradepilot
+  namespace: tradepilot-demo
+spec:
+  selector: {app: tradepilot}
+  ports: [{name: http, port: 8780, targetPort: http}]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: tradepilot-ingress
+  namespace: tradepilot-demo
+spec:
+  podSelector:
+    matchLabels: {app: tradepilot}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels: {kubernetes.io/metadata.name: envoy-gateway-system}
+          podSelector:
+            matchLabels: {app.kubernetes.io/component: proxy}
+      ports: [{port: 8780, protocol: TCP}]

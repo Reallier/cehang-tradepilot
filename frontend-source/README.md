@@ -1,7 +1,7 @@
-# Authored frontend source
+# Independent frontend
 
-`dashboard/` contains the project's authored components and scoped CSS. It does not contain the Data app shell, runtime, public component facade, compiler or built HTML.
+The authored React pages now use `ui.jsx`, an independent navigation, evidence table and SVG chart implementation. It uses React and React DOM from npm; it has no import from or build dependency on the proprietary Data app runtime.
 
-The relative `../../data-app-public.jsx` imports refer to the original Data app component API. They are preserved as integration references; the module is deliberately not distributed here. This directory is not a standalone npm frontend project and no placeholder runtime is supplied.
+Run `npm ci --ignore-scripts`, then `npm run build` from the repository root. `dist/` contains the browser JavaScript/CSS, HTML and third-party license notices. The backend serves only the explicitly allowed browser assets; build metadata and source files are not served.
 
-The complete prototype needs a separately authorized compatible Data app installation, reviewed data metadata and a build using that installation's supported workflow. This repository does not grant access or redistribute that installation. The public backend/model tests do not depend on it.
+`dashboard/` preserves the existing business workflows and risk disclosures, adapted to the temporary public visitor-session model. Transaction controls are not offered. Private evidence files are parsed in browser memory without upload; actual account-monitor files are served only by an explicitly configured loopback deployment. Public account-update examples are synthetic. Source data can be inspected through expandable evidence panels; missing chart values remain gaps rather than zeros.

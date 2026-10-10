@@ -1,16 +1,16 @@
 import React from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {EvidencePanel} from '../ui.jsx';
 const time=v=>v?new Date(v).toLocaleString('zh-CN',{hour12:false}):'未知';
 const fmt=v=>v==null?'—':Number(v).toLocaleString('en-US',{maximumFractionDigits:6});
 export function EvidenceSummary({record}) {
  const comparison=record.classification==='simulation_comparison',rows=comparison?record.results:record.result?[record.result]:[];
  if(!rows.length)return <p className="tp-note">此记录没有可展示的预演摘要；请检查原始证据。</p>;
  const sourceRows=rows.map((r,i)=>({recordId:record.id,recordType:comparison?'comparison':record.spec?'testnet_order':'simulation',plan:comparison?`方案 ${i===0?'A':'B'}`:'预演',network:record.network,chainId:r.chainId,classification:r.classification,model:r.modelVersion,evaluationTime:record.evaluatedAt??r.createdAt,marketTime:r.observedAt,bookTime:r.bookTime,...r.input,estimatedNotional:r.notional,margin:r.margin,entryFee:r.entryFee,exitFee:r.exitFee,fundingEstimate:r.fundingEstimate,entryFeeExact:r.entryFee==null?null:`${r.entryFee} ${r.collateral}`,exitFeeExact:r.exitFee==null?null:`${r.exitFee} ${r.collateral}`,fundingEstimateExact:r.fundingEstimate==null?null:`${r.fundingEstimate} ${r.collateral}`,marketTimeMs:Date.parse(r.observedAt),bookTimeMs:Date.parse(r.bookTime),feeBps:r.feeBps,feeTier:r.feeTier,riskPass:r.riskPass,blockers:r.blockers.join('；'),netPnl:r.netPnl,collateral:r.collateral,contextHash:record.snapshotHashes?.context??null,bookHash:record.snapshotHashes?.book??null,inputHash:record.inputHash??null}));
- return <DataComponent id="tp-saved-evidence-summary" queryId={comparison?'comparisons':'scenarios'} title="保存时的观察与假设" kind="table" displayRows={sourceRows} sourceRows={sourceRows}>
+ return <EvidencePanel id="tp-saved-evidence-summary" queryId={comparison?'comparisons':'scenarios'} title="保存时的观察与假设" kind="table" displayRows={sourceRows} sourceRows={sourceRows}>
  <div className="tp-evidence-summary" data-reviewed-rows>
  <p className="tp-note">{record.spec?'以下为提交前预演；实际成交须另核对协议与链回执。':'模拟证据，未产生订单或实际成交。'} 保存后不会随当前行情变化。</p>
  <dl className="tp-audit-details"><div><dt>数据网络 / 链</dt><dd>{record.network} / {rows[0].chainId}</dd></div><div><dt>评估时刻</dt><dd>{time(record.evaluatedAt??rows[0].createdAt)}</dd></div><div><dt>行情观察</dt><dd>{time(rows[0].observedAt)}</dd></div><div><dt>订单簿观察</dt><dd>{time(rows[0].bookTime)}</dd></div><div><dt>模型版本</dt><dd>{record.modelVersion??rows[0].modelVersion}</dd></div></dl>
  <div className="tp-saved-plans">{rows.map((r,i)=><section key={i}><h3>{comparison?`方案 ${i===0?'A':'B'}`:'保存的预演'} · {r.asset}</h3><p className="tp-note">{r.input.direction==='long'?'做多':'做空'} · 名义金额 {fmt(r.input.notional)} {r.collateral} · {fmt(r.input.leverage)}倍 · {fmt(r.input.hours)}小时 · 冲击 {fmt(r.input.shockPct)}% · 滑点上限 {fmt(r.input.slippageBps)}bps</p><p className="tp-note">{r.feeTier==null?'公开基础档':`账户费用档${r.feeTier}`} · 吃单 {fmt(r.feeBps)}bps。资金费用假定当时费率保持不变，按所选持有时间比例估算，实际按离散周期结算。</p><dl className="tp-audit-details">{[['保证金预算',r.margin],['开仓费估算',r.entryFee],['冲击平仓费估算',r.exitFee],['资金费用估算（负数为收入）',r.fundingEstimate],['所选冲击净损益',r.netPnl]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{fmt(value)} {r.collateral}</dd></div>)}</dl>{r.blockers.length>0&&<ul className="tp-blockers">{r.blockers.map(b=><li key={b}>{b}</li>)}</ul>}</section>)}</div>
  <p className="tp-note">复算使用保存的输入与快照检验模型一致性；不证明上游来源真实、策略获利或链上成交。未知值显示「—」。</p>
- </div></DataComponent>;
+ </div></EvidencePanel>;
 }

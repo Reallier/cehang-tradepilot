@@ -1,10 +1,10 @@
 import React,{useEffect,useState} from 'react';
-import {DataComponent} from '../../data-app-public.jsx';
+import {EvidencePanel} from '../ui.jsx';
 const fmt=(value,digits=6)=>value===null||value===undefined?'—':Number(value).toLocaleString('en-US',{maximumFractionDigits:digits});
 const states={unavailable:'证据尚不完整',mismatch:'核对未通过',rechecked:'保存的证据一致',no_fill:'核对到零成交'};
 const coverage={unknown:'未知',full:'全部',partial:'部分',zero:'零成交'};
 export function ExecutionAudit({api,run,busy,download}){
- const [catalog,setCatalog]=useState(null),[mode,setMode]=useState('records'),[selected,setSelected]=useState(''),[packet,setPacket]=useState(null),[error,setError]=useState('');
+ const [catalog,setCatalog]=useState(null),[mode,setMode]=useState('examples'),[selected,setSelected]=useState('full'),[packet,setPacket]=useState(null),[error,setError]=useState('');
  async function refresh(){try{setCatalog(await api('/api/execution-audit'));setError('');}catch(e){setError(e.message);}}
  useEffect(()=>{refresh();},[]);
  const options=catalog?.[mode]??[],report=packet?.report,synthetic=packet?.classification==='synthetic_execution_audit';
@@ -25,7 +25,7 @@ export function ExecutionAudit({api,run,busy,download}){
  {report&&<>
  <div className="tp-panel"><div className="tp-ticket-top"><h2>{synthetic?'合成演练结果':'保存证据核对结果'}</h2><span className={`tp-badge ${report.receiptConsistent?'tp-safe':'tp-warning'}`}>{states[report.status]??report.status}</span></div><p className="tp-note">本报告的证据网络：Chain {report.chainId??'未知'} · {report.asset??'未知资产'} / {report.collateral??'未知抵押代币'}。{report.note}</p>
  <div className="tp-audit-summary" data-reviewed-rows><div><small>成交覆盖</small><strong>{coverage[report.fillCoverage]}{report.execution?` · ${fmt(report.execution.fillRatio*100,2)}%`:''}</strong></div><div><small>成交价格差额成本</small><strong>{fmt(report.execution?.adversePriceCost)} {report.collateral}</strong></div><div><small>同数量费用差额</small><strong>{fmt(report.execution?.feeDelta)} {report.collateral}</strong></div></div><p className="tp-note">差额成本为正表示增加支出，为负表示减少支出；对比只覆盖本笔开仓。资金结算与已实现损益仍为未知。</p>
- {!!report.rows.length&&<DataComponent id="tp-execution-audit" queryId="executionAudit" title="预估与回执对照" kind="table" displayRows={report.rows} sourceRows={sourceRows}><table className="tp-comparison-table tp-audit-table" aria-label="预估与保存回执的数量价格费用对照" data-reviewed-rows><thead><tr><th scope="col">指标 / 单位</th><th scope="col">预估</th><th scope="col">{synthetic?'合成回执':'回执核对'}</th><th scope="col">差额</th></tr></thead><tbody>{report.rows.map(row=><tr key={row.id}><th scope="row">{row.label}<small className="tp-audit-unit">{row.unit}</small></th><td>{fmt(row.estimated)}</td><td>{fmt(row.observed)}</td><td>{fmt(row.delta)}</td></tr>)}</tbody></table></DataComponent>}
+ {!!report.rows.length&&<EvidencePanel id="tp-execution-audit" queryId="executionAudit" title="预估与回执对照" kind="table" displayRows={report.rows} sourceRows={sourceRows}><table className="tp-comparison-table tp-audit-table" aria-label="预估与保存回执的数量价格费用对照" data-reviewed-rows><thead><tr><th scope="col">指标 / 单位</th><th scope="col">预估</th><th scope="col">{synthetic?'合成回执':'回执核对'}</th><th scope="col">差额</th></tr></thead><tbody>{report.rows.map(row=><tr key={row.id}><th scope="row">{row.label}<small className="tp-audit-unit">{row.unit}</small></th><td>{fmt(row.estimated)}</td><td>{fmt(row.observed)}</td><td>{fmt(row.delta)}</td></tr>)}</tbody></table></EvidencePanel>}
  {report.fillCoverage==='partial'&&<p className="tp-alert">仅按已成交数量对照名义金额和费用；剩余数量没有被当成成交。</p>}
  {!report.receiptConsistent&&report.apiObservation&&<p className="tp-note" data-reviewed-rows>待核对的协议观察：数量 {fmt(report.apiObservation.size)} {report.asset}，均价 {fmt(report.apiObservation.vwap)}，费用 {fmt(report.apiObservation.fee)} {report.collateral}。这些值未填入回执核对列。</p>}
  {report.execution&&<dl className="tp-audit-details" data-reviewed-rows><div><dt>API观察与记录创建的时间差</dt><dd>{fmt(report.execution.observedDelayMs,0)} ms</dd></div><div><dt>费用中的价格变化分量</dt><dd>{fmt(report.execution.feePriceComponent)} {report.collateral}</dd></div><div><dt>剩余费用差额（未作原因判断）</dt><dd>{fmt(report.execution.feeResidual)} {report.collateral}</dd></div></dl>}

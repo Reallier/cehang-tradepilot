@@ -1,12 +1,28 @@
+import {PORTFOLIO_SCHEMA,replayPortfolio} from '../server/portfolio-risk.mjs';
 import fs from 'node:fs';
+import {replayPlanDecision} from '../server/plan-decision.mjs';
+import {replayWorkspaceReview} from '../frontend-source/trade-review.mjs';
 import {simulate} from '../server/risk.mjs';
 import {hash} from '../server/store.mjs';
 import {replayComparison} from '../server/comparison.mjs';
 import {AUDIT_VERSION,replayAudit} from '../server/execution-audit.mjs';
 import {EXIT_VERSION,replayExit} from '../server/position-exit.mjs';
 import {WATCH_VERSION,replayWatch} from '../server/risk-watch.mjs';
+import {ACCOUNT_SCHEMA,replayAccount} from '../server/account-readonly.mjs';
+import {replayWorkflow} from '../frontend-source/account-workflow.mjs';
+import {HISTORY_AUDIT_SCHEMA,replayHistoryAudit} from '../server/history-audit.mjs';
+import {TRADE_REVIEW_SCHEMA,replayTradeReview} from '../server/settlement-audit.mjs';
+import {BASELINE_SCHEMA,verifyBaseline} from '../server/pretrade-baseline.mjs';
 const file=process.argv[2];if(!file)throw new Error('Usage: node scripts/replay.mjs /absolute/preview_record.json');
 const record=JSON.parse(fs.readFileSync(file,'utf8'));
+if(record.schema===PORTFOLIO_SCHEMA){console.log(JSON.stringify(replayPortfolio(record)));process.exit(0);}
+if(record.schema==='plan-decision-review-v1'){console.log(JSON.stringify(replayPlanDecision(record)));process.exit(0);}
+if(record.schema==='account-trade-workspace-v1'){console.log(JSON.stringify(replayWorkspaceReview(record)));process.exit(0);}
+if(record.schema===TRADE_REVIEW_SCHEMA){console.log(JSON.stringify(replayTradeReview(record)));process.exit(0);}
+if(record.schema===BASELINE_SCHEMA){verifyBaseline(record);console.log(JSON.stringify({status:'reproduced',classification:'pretrade_baseline'}));process.exit(0);}
+if(record.schema===HISTORY_AUDIT_SCHEMA){console.log(JSON.stringify(replayHistoryAudit(record),null,2));process.exit(0);}
+if(record.schema==='account-workflow-review-v1'){console.log(JSON.stringify(await replayWorkflow(record),null,2));process.exit(0);}
+if(record.schema===ACCOUNT_SCHEMA){console.log(JSON.stringify(replayAccount(record),null,2));process.exit(0);}
 if(record.schema===WATCH_VERSION){console.log(JSON.stringify(replayWatch(record),null,2));process.exit(0);}
 if(record.schema===EXIT_VERSION){console.log(JSON.stringify(replayExit(record),null,2));process.exit(0);}
 if(record.schema===AUDIT_VERSION){console.log(JSON.stringify(replayAudit(record),null,2));process.exit(0);}

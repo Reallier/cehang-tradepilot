@@ -1,4 +1,4 @@
-import {positionRisk} from './risk.mjs';
+import {positionRisk,positionStampWithinSnapshot} from './risk.mjs';
 import {hash} from './store.mjs';
 import {positionExample} from './position-examples.mjs';
 export const WATCH_VERSION='risk-watch-v1';
@@ -21,7 +21,7 @@ export function evaluateWatch(snapshot) {
  if(!feed.position)return {...base,state:'not_observed',reason:'此仓位未出现在本次开放仓位快照；不能据此认定已平仓或资金已释放'};
  const pos=feed.position,market=feed.context.markets?.find(m=>m.id===watch.marketId);
  if(pos.pid!==watch.positionId||pos.acc!==watch.accountId||pos.mkt!==watch.marketId||pos.st!==1||!market)return {...base,reason:'仓位身份、开放状态或市场无法匹配'};
- if(!stamp(market.state?.at?.t,now)||!Number.isSafeInteger(market.state?.at?.b)||market.state.at.b>head||!Number.isFinite(pos.at?.t)||pos.at.t>time+5000||!Number.isSafeInteger(pos.at?.b)||pos.at.b>feed.snapshotAt.b)return {...base,reason:'市场陈旧或仓位最后更新与读取快照不一致'};
+ if(!stamp(market.state?.at?.t,now)||!Number.isSafeInteger(market.state?.at?.b)||market.state.at.b>head||!positionStampWithinSnapshot(pos.at,feed.snapshotAt))return {...base,reason:'市场陈旧或仓位最后更新与读取快照不一致'};
  let risk;try{risk=positionRisk(pos,market,feed.context,now,time);}catch(e){return {...base,reason:e.message};}
  if(risk.status==='incomplete')return {...base,risk,reason:'已应用资金或维持保证金信息未知'};
  const bufferPct=risk.marginBuffer/risk.maintenanceEstimate*100;

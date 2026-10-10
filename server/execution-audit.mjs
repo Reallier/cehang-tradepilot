@@ -1,5 +1,5 @@
 import {simulate,MODEL_VERSION} from './risk.mjs';
-import {decodeReceipt} from './events.mjs';
+import {decodeReceipt,normalizeTxHash} from './events.mjs';
 import {hash} from './store.mjs';
 
 export const AUDIT_VERSION='opening-execution-audit-v1';
@@ -55,7 +55,7 @@ export function auditExecution(intent,{synthetic=false}={}){
   if(!receipt||!tx){check('receipt','保存的回执与交易',false,'回执或交易缺失；协议观察不视为成交已核验。');return report;}
   let events;
   try{
-    const h=o.at?.txid;if(!/^0x[0-9a-fA-F]{64}$/.test(h??''))throw new Error('协议订单无有效交易哈希');
+    const h=normalizeTxHash(o.at?.txid);if(!h)throw new Error('协议订单无有效交易哈希');
     if(intent.chainId!==10143||rec.txHash?.toLowerCase()!==h.toLowerCase()||receipt.status!=='0x1'||receipt.transactionHash?.toLowerCase()!==h.toLowerCase()||tx.hash?.toLowerCase()!==h.toLowerCase())throw new Error('链、交易哈希或成功状态不一致');
     if(tx.chainId==null||Number(BigInt(tx.chainId))!==10143)throw new Error('保存的交易链ID不一致或缺失');
     integer(o.at.b,'订单区块',1);integer(o.at.l,'订单日志');

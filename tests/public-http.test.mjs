@@ -1,0 +1,42 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import net from 'node:net';
+import http from 'node:http';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+for(const basePath of ['', '/demos/tradepilot'])test(`public HTTP base=${basePath||'/'} isolates visitors, denies transactions and inherited credentials, and keeps source files private`,async()=>{
+ const socket=net.createServer();socket.listen(0,'127.0.0.1');await once(socket,'listening');const port=socket.address().port;await new Promise(r=>socket.close(r));
+ const state=await fs.mkdtemp(path.join(os.tmpdir(),'tp-http-'));
+ const child=spawn(process.execPath,['server/index.mjs'],{cwd:root,env:{...process.env,TP_PORT:String(port),TP_BASE_PATH:basePath,TP_PUBLIC_ORIGIN:'https://demo.example.org',TP_DATA_DIR:state,TP_ENABLE_TESTNET_ORDERS:'true',TP_LOCAL_MONITOR_FILE:'/must-not-read-private-monitor.json',PERPL_MAINNET_API_KEY:'inherited-test-only',PERPL_MAINNET_API_KEY_SECRET:'1'.repeat(64)}});
+ let output='';child.stderr.on('data',v=>{output+=v;});
+ const request=(route,{cookie,token,method='GET',body,headers={}}={})=>new Promise((resolve,reject)=>{const r=http.request({hostname:'127.0.0.1',port,path:basePath+route,method,headers:{host:'demo.example.org',...(cookie?{cookie}:{}),...(token?{'x-tradepilot-token':token}:{}),...(body?{'content-type':'application/json',origin:'https://demo.example.org'}:{}),...headers}},res=>{let raw='';res.on('data',v=>{raw+=v;});res.on('end',()=>{let data;try{data=JSON.parse(raw);}catch{}resolve({status:res.statusCode,headers:res.headers,data});});});r.on('error',reject);r.end(body?JSON.stringify(body):undefined);});
+ try{
+  await Promise.race([once(child.stdout,'data'),once(child,'exit').then(()=>{throw new Error(output||'Server exited');}),new Promise((_,reject)=>{const t=setTimeout(()=>reject(new Error('Server startup timeout')),10000);t.unref();})]);
+  const start=await request('/api/session');assert.equal(start.status,200);assert.ok(start.headers['set-cookie'][0].includes(`Path=${basePath}/;`));const a={cookie:start.headers['set-cookie'][0].split(';')[0],token:start.data.token};
+  const next=await request('/api/session'),b={cookie:next.headers['set-cookie'][0].split(';')[0],token:next.data.token};
+  const payload={action:'save',name:'visitor-a',network:'mainnet',marketId:1,input:{direction:'long',notional:100,leverage:3,hours:1,shockPct:-10,slippageBps:25}};
+  const saved=await request('/api/presets',{...a,method:'POST',body:payload});assert.equal(saved.status,200);
+  assert.equal((await request('/api/presets',b)).data.presets.length,0);
+  assert.equal((await request('/api/presets?id='+saved.data.id,b)).status,404);
+  assert.equal((await request('/api/presets',{...b,token:a.token,method:'POST',body:payload})).status,403);
+  assert.equal((await request('/api/records')).status,401);
+  assert.equal((await request('/api/account?network=mainnet',a)).data.configured,false);
+  assert.equal((await request('/api/local-observation',a)).data.available,false);
+  assert.equal((await request('/api/local-monitor',a)).data.available,false);
+  const guided=await request('/api/guided-review',a);assert.equal(guided.status,200);assert.equal(guided.data.trade.observation.classification,'synthetic_testnet_history');assert.equal(guided.data.comparisons[0].status,'compared');
+  for(const route of ['submit','close','reconcile'])assert.equal((await request('/api/testnet/'+route,{...a,method:'POST',body:{}})).status,403);
+  assert.equal((await request('/api/session',{headers:{host:'evil.example','x-forwarded-host':'demo.example.org'}})).status,403);
+  assert.equal((await request('/api/presets',{...a,method:'POST',body:payload,headers:{origin:'https://evil.example'}})).status,403);
+  assert.equal((await request('/api/session',{headers:{'sec-fetch-site':'cross-site'}})).status,403);
+  assert.equal((await request('/api/feedback',{...a,method:'POST',body:{problem:'x'.repeat(17000)}})).status,413);
+  assert.equal((await request('/server/perpl.mjs')).status,404);
+  assert.equal((await request('/api/health')).data.testnetTrading,false);
+  const audit=await request('/api/execution-audit?example=full',a);assert.equal(audit.status,200);assert.equal(audit.data.classification,'synthetic_execution_audit');
+  assert.match(audit.headers['content-security-policy'],/frame-ancestors 'none'/);assert.equal(audit.headers['cache-control'],'no-store');
+ }finally{child.kill('SIGTERM');await once(child,'exit');await fs.rm(state,{recursive:true,force:true});}
+});
