@@ -29,7 +29,7 @@ The statement above describes the initial 49-file publication. The subsequent in
 
 ## Updated source candidate: 2026-10-10
 
-Status: prepared and reviewed locally; this section does not assert a GitHub push.
+Status: the reviewed source was published in commit `68912ba3188d6f8d176f7403efbf2bdc456a7d9f`; the full two-commit publication history scan reported zero findings before push. Deployment evidence is recorded in `PUBLIC_LAUNCH.md`.
 
 - Exact candidate: 136 source, test, documentation and deployment-template files, based on initial public commit `c16f1785a93e98b7629df4235f0e22d5541d4c3f`.
 - Prepared in an independent checkout, preserving the working repository's existing staging area.
@@ -43,4 +43,4 @@ Historical testnet acceptance comprises two long/full-close lifecycles, includin
 
 The exact reviewed file manifest and redacted scanner reports are retained locally outside the published source tree. Any source change after this review requires updating the manifest and scanning the final candidate again.
 
-The source review found and corrected third-failure cooldown loss and comparison with missing collateral identity. Three additional regression tests bring the candidate suite to 110. These fixes are prepared locally; hosted deployment remains at the release documented in `PUBLIC_LAUNCH.md`.
+The source review found and corrected third-failure cooldown loss and comparison with missing collateral identity. Three additional regression tests bring the candidate suite to 110. These fixes are now published and deployed; the verified runtime release is recorded in `PUBLIC_LAUNCH.md`.

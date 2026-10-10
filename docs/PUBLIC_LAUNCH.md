@@ -1,4 +1,19 @@
-# Current release — bounded account updates and risk changes
+# Current release — reviewed source publication and monitor fixes
+
+- Released 2026-10-10 at https://reallier.com/demos/tradepilot/ .
+- Runtime source commit `68912ba3188d6f8d176f7403efbf2bdc456a7d9f` is published to `Reallier/cehang-tradepilot` on GitHub. Subsequent documentation-only commits record this acceptance; they do not change the runtime.
+- Image `localhost/tradepilot-demo:ddc14b8369fb`; config digest `7d56ac2354beea2b1b789c5acf1e58da8320637f831133c818f387c7442e2f70`. The image revision label matches the runtime source commit.
+- Runtime archive SHA-256 `ddc14b8369fbaf131fc3688e5f8d3ebb4f870a86b6d21d6591082145712c2b62`.
+- JS `cfd6b661f597c840be25b358070d116e247c1bdb4d3e780c1a6868e3c210f23b`; CSS `f8bf0c59652e3762d533cd05ca865473d9b7bc74f0e65d51cc78fff869a11258`. Public HTTPS assets and running-container assets match the candidate build.
+- Pod `tradepilot-55796d589c-qdsxz`: 1/1 Ready, zero restarts at verification. The deployed account-monitor module hash also matches the reviewed source.
+- All 110 tests passed before release. Three new regressions cover third-failure cooldown persistence across restart and missing/invalid/normalized collateral identity. Committed history and source privacy checks found no leaks.
+- Public health/session checks confirm both mainnet and testnet orders disabled; local observation and monitor endpoints are unavailable publicly. The public guided case remains synthetic and its downloaded evidence independently replays.
+- No private account evidence or credentials were deployed. No real account collection was retried; prior HTTP 451 remains unresolved. Interactive browser acceptance was not repeated in this release.
+- Rollback manifest `releases/ddc14b8369fb/previous-demo.yaml` restores image `443174e50e95`. This is the existing manual K3s deployment, not a CI/Flux release.
+
+---
+
+# Previous release — bounded account updates and risk changes
 
 - Image `localhost/tradepilot-demo:443174e50e95`; config digest `c85058d7eecfadcb95b74922ab02e62b87f0b24c0a3bc05dbe6b5fd57638dee3`.
 - Runtime archive SHA-256 `443174e50e9509bae8b89db78b0ab9bc21592bb6a406ed1da0bcfa7e04b54ccf`.

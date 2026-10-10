@@ -44,4 +44,4 @@ Actual continuous account updates therefore remain **unaccepted** pending an eli
 
 ## Publication review fixes — 2026-10-10
 
-Three new regression tests cover the third-429 stop/serialization/manual-restart path, missing or invalid asset identity on either side, and address case normalization versus changed token precision or address. These are source-candidate fixes; they do not assert that the hosted demo has been redeployed. No real account refresh was retried.
+Three new regression tests cover the third-429 stop/serialization/manual-restart path, missing or invalid asset identity on either side, and address case normalization versus changed token precision or address. These fixes were published and deployed in release `ddc14b8369fb`; see `PUBLIC_LAUNCH.md` for runtime and public HTTP evidence. No real account refresh was retried.
