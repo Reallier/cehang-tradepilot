@@ -31,4 +31,4 @@ Implemented compact preview-to-review navigation and direct in-memory baseline t
 
 ## Bounded account refresh and risk changes
 
-Implemented independent local read-only sampling, persisted cooldown/stop status and observation differences. Public users receive a labeled synthetic change example; no owner account is exposed. Real collection returned HTTP 451 and stopped, so live continuous-update acceptance remains blocked. See ACCOUNT_MONITOR.md.
+Implemented independent local read-only sampling, persisted cooldown/stop status and observation differences. Public users receive a labeled synthetic change example; no owner account is exposed. An earlier collection returned HTTP 451 and stopped. A later single cycle succeeded on 2026-10-10 at 19:44 Asia/Shanghai after both proxy-bypass variables were set. Sustained continuous refresh is not accepted. See ACCOUNT_MONITOR.md.

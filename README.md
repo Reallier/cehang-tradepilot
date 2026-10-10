@@ -24,7 +24,7 @@ Current verification: **110 automated tests pass**. A corrected local proxy-bypa
 - Saved JSON evidence, hashes and complete local replay.
 - Account workspace: browser-local observation/history import, position stress, receipt/settlement review, pre-trade baseline comparison and replayable export. One-click synthetic guided case requires no wallet or files. See [account workflow](docs/ACCOUNT_WORKFLOW.md).
 - Collateral-aware portfolio stress, guided evidence import and direct pre-trade-baseline handoff.
-- Bounded loopback-only account monitoring, observation deltas and failure/staleness states; actual continuous refresh remains blocked as described above.
+- Bounded loopback-only account monitoring, observation deltas and failure/staleness states. One local testnet read-only cycle succeeded on 2026-10-10 at 19:44 Asia/Shanghai; sustained continuous refresh is not accepted.
 - Execution audit: five explicitly synthetic examples, including partial fills and missing evidence.
 - Position exit estimates: six synthetic scenarios; actual settlement values stay unknown.
 - Risk watch: eight synthetic stages, state deduplication and minimum refresh interval.
