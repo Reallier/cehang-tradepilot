@@ -1,3 +1,5 @@
+import {TEST_PLAN_SCHEMA,replayTestPlan} from '../frontend-source/testnet-plan.mjs';
+import {SCENARIO_SCHEMA,replayPortfolioScenario} from '../server/portfolio-scenarios.mjs';
 import {RESEARCH_COMPARISON_SCHEMA,replayResearchComparison} from '../frontend-source/research-comparison.mjs';
 import {RESEARCH_SCHEMA,replayResearch} from '../frontend-source/research-workspace.mjs';
 import {PORTFOLIO_SCHEMA,replayPortfolio} from '../server/portfolio-risk.mjs';
@@ -18,13 +20,16 @@ import {TRADE_REVIEW_SCHEMA,replayTradeReview} from '../server/settlement-audit.
 import {BASELINE_SCHEMA,verifyBaseline} from '../server/pretrade-baseline.mjs';
 const file=process.argv[2];if(!file)throw new Error('Usage: node scripts/replay.mjs /absolute/preview_record.json');
 const record=JSON.parse(fs.readFileSync(file,'utf8'));
-if(record.schema===RESEARCH_COMPARISON_SCHEMA){console.log(JSON.stringify(replayResearchComparison(record)));process.exit(0);}
+if(record.schema===TEST_PLAN_SCHEMA){console.log(JSON.stringify(replayTestPlan(record)));process.exit(0);}
+if(record.schema===SCENARIO_SCHEMA){console.log(JSON.stringify(replayPortfolioScenario(record)));process.exit(0);}
+
+if([RESEARCH_COMPARISON_SCHEMA,'testnet-research-comparison-v1'].includes(record.schema)){console.log(JSON.stringify(replayResearchComparison(record)));process.exit(0);}
 if(record.schema===SIZING_SCHEMA){console.log(JSON.stringify(replaySizing(record)));process.exit(0);}
 if(record.schema===PORTFOLIO_SCHEMA){console.log(JSON.stringify(replayPortfolio(record)));process.exit(0);}
 if(record.schema==='plan-decision-review-v1'){console.log(JSON.stringify(replayPlanDecision(record)));process.exit(0);}
 if(record.schema==='account-trade-workspace-v1'){console.log(JSON.stringify(replayWorkspaceReview(record)));process.exit(0);}
-if(record.schema===RESEARCH_SCHEMA){console.log(JSON.stringify(replayResearch(record)));process.exit(0);}
-if(record.schema===TRADE_REVIEW_SCHEMA){console.log(JSON.stringify(replayTradeReview(record)));process.exit(0);}
+if([RESEARCH_SCHEMA,'testnet-research-workspace-v1'].includes(record.schema)){console.log(JSON.stringify(replayResearch(record)));process.exit(0);}
+if([TRADE_REVIEW_SCHEMA,'testnet-trade-review-v2'].includes(record.schema)){console.log(JSON.stringify(replayTradeReview(record)));process.exit(0);}
 if(record.schema===BASELINE_SCHEMA){verifyBaseline(record);console.log(JSON.stringify({status:'reproduced',classification:'pretrade_baseline'}));process.exit(0);}
 if(record.schema===HISTORY_AUDIT_SCHEMA){console.log(JSON.stringify(replayHistoryAudit(record),null,2));process.exit(0);}
 if(record.schema==='account-workflow-review-v1'){console.log(JSON.stringify(await replayWorkflow(record),null,2));process.exit(0);}

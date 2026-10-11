@@ -1,7 +1,8 @@
+import {replayResearchComparison as replayV1} from './research-comparison-v1.mjs';
 import {hash} from '../server/integrity.mjs';
 import {researchReport,MAX_RESEARCH_BYTES} from './research-workspace.mjs';
 
-export const RESEARCH_COMPARISON_SCHEMA='testnet-research-comparison-v1';
+export const RESEARCH_COMPARISON_SCHEMA='testnet-research-comparison-v2';
 export const COMPARISON_METRICS=[
  {key:'adverseBps',label:'入场不利偏差',unit:'bps'},
  {key:'feeDeltaBps',label:'入场费偏差',unit:'bps'},
@@ -17,8 +18,8 @@ export function sampleStatistics(values){
  const sorted=[...values].sort((a,b)=>a-b),n=sorted.length;
  return {n,mean:values.reduce((s,v)=>s+v/n,0),median:n%2?sorted[(n-1)/2]:sorted[n/2-1]/2+sorted[n/2]/2,min:sorted[0],max:sorted[n-1]};
 }
-export function compareResearch(workspace){
- const verified=researchReport(workspace),experiments=new Map(workspace.experiments.map(e=>[e.id,e]));
+export function compareResearch(workspace,verifiedReport=null){
+ const verified=verifiedReport??researchReport(workspace),experiments=new Map(workspace.experiments.map(e=>[e.id,e]));
  const rows=verified.rows.map(r=>{
   const e=experiments.get(r.id),row={id:r.id,title:e.title,source:r.source,state:r.state,included:false,reason:reasons[r.state]??null,identity:r.identity,groupId:null,sample:null};
   if(r.state!=='verified')return row;
@@ -60,7 +61,7 @@ export function researchComparisonPacket(workspace){
  const report=compareResearch(workspace),packet={schema:RESEARCH_COMPARISON_SCHEMA,workspace,report,workspaceHash:hash(workspace),reportHash:hash(report)};
  if(new TextEncoder().encode(JSON.stringify(packet,null,2)).length>MAX_RESEARCH_BYTES)throw new Error('完整对比导出超过8MB，请拆分工作区');return packet;
 }
-export function replayResearchComparison(packet){
+export function replayResearchComparison(packet){if(packet?.schema==='testnet-research-comparison-v1')return replayV1(packet);
  if(packet?.schema!==RESEARCH_COMPARISON_SCHEMA)throw new Error('请选择跨实验对比文件');
  const expected=researchComparisonPacket(packet.workspace);if(hash(expected)!==hash(packet))throw new Error('跨实验对比无法复算');
  return {status:'reproduced',...expected.report};

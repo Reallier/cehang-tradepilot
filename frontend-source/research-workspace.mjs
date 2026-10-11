@@ -1,14 +1,15 @@
+import {replayResearch as replayV1} from './research-workspace-v1.mjs';
 import {hash} from '../server/integrity.mjs';
 import {verifyBaseline} from '../server/pretrade-baseline.mjs';
 import {importTradeReview,workspaceReview,replayWorkspaceReview} from './trade-review.mjs';
 import {reviewJourneys} from './review-journeys.mjs';
 
-export const RESEARCH_SCHEMA='testnet-research-workspace-v1',MAX_RESEARCH_BYTES=8*1024*1024;
+export const RESEARCH_SCHEMA='testnet-research-workspace-v2',MAX_RESEARCH_BYTES=8*1024*1024;
 export const EXPERIMENT_TYPES=[
  {id:'short_full',label:'空头单次开平仓',direction:'空头',supported:true,purpose:'核对空头的预估成交价、交易费、资金损益和完整退出结算。'},
  {id:'long_full',label:'多头单次开平仓',direction:'多头',supported:true,purpose:'核对多头的事前基线、成交偏差和完整退出结算。'},
  {id:'size_leverage',label:'规模与杠杆对照',supported:false,purpose:'先分别建立多头或空头实验；跨实验归因尚未实现。'},
- {id:'partial',label:'分批成交与退出',supported:false,purpose:'多次退出的生命周期核验需要先扩展；现阶段不自动判定实验完成。'},
+ {id:'partial',label:'分批退出（多头）',direction:'多头',supported:true,purpose:'单次多头开仓后分批退出，核对逐次数量、费用分摊与最终结算。'},
  {id:'funding',label:'跨资金费周期',supported:false,purpose:'需要跨周期观察与资金事件归因；单笔结算不足以验证整个周期。'},
  {id:'monitor',label:'长时间只读观察',supported:false,purpose:'需要观察完整率、间隔和恢复证据；交易记录不能替代采集质量验收。'}
 ];
@@ -39,7 +40,7 @@ export function researchReport(workspace){
   if(e.journeyId!==null&&!j)throw new Error('所选成交不在当前证据中');
   const source=e.trade?(e.trade.observation.classification==='synthetic_testnet_history'?'synthetic':'saved_testnet'):'none';
   const direction=e.baseline?.evidence.preview.result.input.direction;
-  let state=!type.supported?'unsupported':!e.baseline?'needs_baseline':direction!==(e.kind==='short_full'?'short':'long')?'direction_mismatch':!e.trade?'needs_trade':!j?'needs_selection':j.direction!==type.direction?'direction_mismatch':j.open.status!=='opening_reconciled'?'needs_evidence':j.comparison?.status!=='compared'?'baseline_mismatch':j.state==='closed'?'verified':j.state==='partial'?'partial':j.state==='exit_missing'?'needs_exit':'needs_evidence';
+  let state=!type.supported?'unsupported':!e.baseline?'needs_baseline':direction!==(e.kind==='short_full'?'short':'long')?'direction_mismatch':!e.trade?'needs_trade':!j?'needs_selection':j.direction!==type.direction?'direction_mismatch':j.open.status!=='opening_reconciled'?'needs_evidence':j.comparison?.status!=='compared'?'baseline_mismatch':j.state==='closed'?(e.kind==='partial'&&(j.exits.length<2||e.trade.schema!=='testnet-trade-review-v3')?'needs_evidence':'verified'):j.state==='partial'?'partial':j.state==='exit_missing'?'needs_exit':'needs_evidence';
   const identity=j?JSON.stringify([source,10143,e.trade.observation.evidence.account.snapshot.expectedWallet.toLowerCase(),j.accountId,j.marketId,j.open.orderId,j.open.txHash]):null;
   return {id:e.id,kind:e.kind,state,source,identity,duplicate:false,journey:j??null,
    choices:journeys.map(j=>({id:j.id,label:`${j.asset} · ${j.direction} · #${j.open.orderId}`})),
@@ -54,6 +55,7 @@ export function researchReport(workspace){
 }
 export function researchPacket(workspace){const report=researchReport(workspace);const packet={schema:RESEARCH_SCHEMA,workspace,report,workspaceHash:hash(workspace),reportHash:hash(report)};if(new TextEncoder().encode(JSON.stringify(packet,null,2)).length>MAX_RESEARCH_BYTES)throw new Error('完整导出超过8MB，请拆分工作区');return packet;}
 export function replayResearch(p){
+ if(p?.schema==='testnet-research-workspace-v1')return replayV1(p);
  if(p?.schema!==RESEARCH_SCHEMA)throw new Error('请选择测试网研究工作区文件');
  const expected=researchPacket(p.workspace);if(hash(expected)!==hash(p))throw new Error('研究工作区无法复算');
  return {status:'reproduced',...expected.report};

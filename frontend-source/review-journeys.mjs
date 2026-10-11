@@ -26,6 +26,13 @@ export function reviewJourneys(packet){
   j.closedAt=exit?orderMeta(exit)?.at?.t??null:null;
   j.durationMs=j.openedAt!=null&&j.closedAt!=null&&j.closedAt>=j.openedAt?j.closedAt-j.openedAt:null;
   j.pnl=verified?{price:exit.execution.grossPnl,funding:exit.execution.fundingPnl,entryFee:exit.execution.entryFeeShare,exitFee:exit.execution.fee,net:exit.realizedPnl}:null;
+  if(trade.schema==='testnet-trade-review-v3'&&j.exits.length){
+   j.exits.sort((a,b)=>(orderMeta(a)?.at?.b-orderMeta(b)?.at?.b)||(orderMeta(a)?.at?.tx-orderMeta(b)?.at?.tx)||(orderMeta(a)?.at?.l-orderMeta(b)?.at?.l));
+   const valid=j.open.status==='opening_reconciled'&&new Set(j.exits.map(x=>x.orderId)).size===j.exits.length&&j.exits.every(x=>x.status==='exit_reconciled'),last=j.exits.at(-1);
+   j.state=valid?(last.execution.partial?'partial':last.execution.remainingSize===0?'closed':'review'):'review';
+   j.closedAt=orderMeta(last)?.at?.t??null;j.durationMs=j.openedAt!=null&&j.closedAt>=j.openedAt?j.closedAt-j.openedAt:null;
+   j.pnl=valid?j.exits.reduce((a,x)=>({price:a.price+x.execution.grossPnl,funding:a.funding+x.execution.fundingPnl,entryFee:a.entryFee+x.execution.entryFeeShare,exitFee:a.exitFee+x.execution.fee,net:a.net+x.realizedPnl}),{price:0,funding:0,entryFee:0,exitFee:0,net:0}):null;
+  }
  }
  return {items,unlinked};
 }

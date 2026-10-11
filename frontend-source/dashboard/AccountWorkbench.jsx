@@ -1,3 +1,4 @@
+import {PortfolioScenarios} from './PortfolioScenarios.jsx';
 import {AccountUpdates} from './AccountUpdates.jsx';
 import {PortfolioRisk} from './PortfolioRisk.jsx';
 import {portfolioExample} from '../../server/portfolio-example.mjs';
@@ -16,19 +17,19 @@ export function AccountWorkbench({active,api,download,tick,onMarket,onProgress,r
  const [packet,setPacket]=useState(null),[selected,setSelected]=useState(''),[view,setView]=useState('positions'),[shock,setShock]=useState(-10),[error,setError]=useState(''),[busy,setBusy]=useState(false),[origin,setOrigin]=useState('');
  const [importStatus,setImportStatus]=useState('');
  const [clearEpoch,setClearEpoch]=useState(0);
- const [portfolioShock,setPortfolioShock]=useState(-10);
+ const [portfolioShock,setPortfolioShock]=useState(-10),[advancedScenario,setAdvancedScenario]=useState(null);
  const [trade,setTrade]=useState(null),[baseline,setBaseline]=useState(null);
  const file=useRef(null),attempt=useRef(0),loaded=useRef(false);
  function clearPage(){
   attempt.current++;loaded.current=true;
-  setPacket(null);setTrade(null);setBaseline(null);setError('');setImportStatus('');setBusy(false);
+  setAdvancedScenario(null);setPacket(null);setTrade(null);setBaseline(null);setError('');setImportStatus('');setBusy(false);
   setSelected('');setView('positions');setShock(-10);setPortfolioShock(-10);setOrigin('');
   setClearEpoch(v=>v+1);
  }
  function applyImport(result,from,id){
   if(id!==attempt.current)return;
   if(result.kind==='baseline'){setBaseline(result.baseline);setView('review');setImportStatus(result.label);return;}
-  setPacket(result.observation);setTrade(result.trade);setBaseline(result.replaceBaseline?result.baseline:baseline);setPortfolioShock(result.shock);setShock(result.shock);setSelected(result.selection);setView(result.view);setOrigin(from);setImportStatus(result.label);
+  setAdvancedScenario(result.advancedScenario??null);setPacket(result.observation);setTrade(result.trade);setBaseline(result.replaceBaseline?result.baseline:baseline);setPortfolioShock(result.shock);setShock(result.shock);setSelected(result.selection);setView(result.view);setOrigin(from);setImportStatus(result.label);
  }
  async function accept(p,from,id){applyImport(await prepareEvidence(p),from,id);}
  async function example(){const id=++attempt.current;setBusy(true);setError('');try{await accept(await api('/api/guided-review'),'内置合成案例',id);}catch(e){if(id===attempt.current)setError(importFailure(e));}finally{if(id===attempt.current)setBusy(false);}}
@@ -59,6 +60,7 @@ export function AccountWorkbench({active,api,download,tick,onMarket,onProgress,r
  <p className="tp-note">已通过快照哈希与模型复算。它验证内部一致性，不能独立认证上游来源或证明成交。{packet.report.issues.length?`数据问题：${packet.report.issues.join('、')}`:''}</p>
  <nav className="analysis-tabs" aria-label="账户流程">{[['overview','账户风险总览'],['positions','1 实际持仓'],['stress','2 持仓压力预演'],['review','3 复盘与证据']].map(([id,label])=><button key={id} disabled={id==='stress'&&!risk||id==='review'&&!risk&&!trade} aria-current={view===id?'page':undefined} onClick={()=>setView(id)}>{label}</button>)}</nav>
  {view==='overview'&&<PortfolioRisk shock={portfolioShock} onShock={setPortfolioShock} packet={packet} download={download} onPosition={(p,shock)=>{setShock(shock);setSelected(`${p.accountId}:${p.positionId}`);setView('stress');}}/>}
+ {view==='overview'&&<PortfolioScenarios key={`${packet.snapshotHash}:${JSON.stringify(advancedScenario)}`} packet={packet} initial={advancedScenario} download={download}/>}
  {view!=='overview'&&(view!=='review'||positions.some(p=>p.risk))&&<div className="account-position-list"><label>选择持仓<select aria-label="选择实际持仓" value={selected} disabled={!positions.some(p=>p.risk)} onChange={e=>setSelected(e.target.value)}>{positions.filter(p=>p.risk).map(p=><option key={`${p.accountId}:${p.positionId}`} value={`${p.accountId}:${p.positionId}`}>{p.risk.asset} · {p.risk.direction==='long'?'多头':'空头'} · {p.risk.size} · #{p.positionId}</option>)}</select></label><span>{packet.report.accountCount} 个账户 · {packet.report.positionCount} 个开放仓位</span></div>}
  {!risk&&view!=='review'&&view!=='overview'?<div className="tp-empty">{packet.report.status==='empty_positions'?'本次观察没有开放仓位。':'本次观察未提供可计算持仓。'}<p>这不等同于已核验平仓、结算或盈利。</p><button onClick={onMarket}>进入市场预演</button></div>:risk&&<>
  {view==='positions'&&<><div className="account-metrics">{[['持仓数量',risk.size,risk.asset,5],['入场均价',risk.entryPrice,risk.collateralToken,2],['仓位抵押',risk.collateral,risk.collateralToken,6],['观察时未实现盈亏',risk.unrealizedPnl,risk.collateralToken,6],['估算清算价',risk.liquidationEstimate,risk.collateralToken,2],['保证金余量',risk.marginBuffer,risk.collateralToken,6]].map(([label,v,u,d])=><div key={label}><span>{label}</span><strong>{fmt(v,d)}</strong><small>{u}</small></div>)}</div><div className="account-summary"><h2>这笔仓位需要关注什么</h2><p>标记价格 {fmt(risk.markPrice)}；估算维持保证金 {fmt(risk.maintenanceEstimate,6)} {risk.collateralToken}。{risk.status==='incomplete'?'输入不完整，权益与清算结论应保留未知。':'结果适用于观察时刻，不代表当前实时风险。'}</p><p className="tp-note">入场费用 {fmt(risk.indicativeEntryFee,6)} 已由协议收取，不从当前权益再次扣除。仓位最后更新时间：{time(risk.sourceTime)}。</p><button className="tp-primary" onClick={()=>setView('stress')}>检验价格下跌后的余量 <ArrowRight size={14}/></button></div></>}

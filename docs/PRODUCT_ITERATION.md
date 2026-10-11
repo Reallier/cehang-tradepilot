@@ -58,3 +58,7 @@ The research panel now separates opening, settlement, baseline and comparative e
 ### 2026-10-12 — Research archive batch merge
 
 Added a local, atomic multi-file merge for independently replayed research/comparison archives. Existing drafts and experiment selection survive; identical IDs/content are deduplicated, alternate versions are rejected without overwrite, and lifecycle counts retain their existing deduplication rules. The batch is bounded to 20 files / 8 MiB input, 20 resulting experiments and the existing full-export size limit. Clear cancels pending work. No dependencies, endpoints, upstream requests or order capabilities were added. See TESTNET_EXPERIMENTS.md for workflow and limitations.
+
+## 2026-10-12 — Integrated research workflow upgrade
+
+Implemented opt-in browser-local snapshots, Worker replay, chunk loading, sequential-exit settlement v3, per-market funding/exit scenarios, passive diagnostics, fixed-condition test plans and a single capability manifest. See RESEARCH_UPGRADE.md and CURRENT_CAPABILITIES.md for scope and evidence boundaries. New short/staged actual chain samples remain separately pending.

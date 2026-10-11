@@ -25,6 +25,8 @@ for(const basePath of ['', '/demos/tradepilot'])test(`public HTTP base=${basePat
   assert.equal((await request('/api/presets?id='+saved.data.id,b)).status,404);
   assert.equal((await request('/api/presets',{...b,token:a.token,method:'POST',body:payload})).status,403);
   assert.equal((await request('/api/records')).status,401);
+  assert.equal((await request('/api/diagnostics')).status,401);const diagnostic=await request('/api/diagnostics',a);assert.equal(diagnostic.status,200);assert.equal(diagnostic.data.upstreamProbed,false);assert.ok(diagnostic.data.networks.every(n=>n.status==='not_observed'));
+  assert.equal((await request('/dist/build-meta.json')).status,404);assert.equal((await request('/chunks/../server/perpl.mjs')).status,404);
   assert.equal((await request('/api/account?network=mainnet',a)).data.configured,false);
   assert.equal((await request('/api/local-observation',a)).data.available,false);
   assert.equal((await request('/api/local-monitor',a)).data.available,false);

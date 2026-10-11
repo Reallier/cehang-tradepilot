@@ -4,7 +4,7 @@ import {tradeReviewPacket,replayTradeReview} from '../server/settlement-audit.mj
 import {verifyBaseline,compareBaseline} from '../server/pretrade-baseline.mjs';
 export function importTradeReview(input){
  if(input?.schema==='testnet-history-audit-v1'){replayHistoryAudit(input);return tradeReviewPacket(input.observation);}
- if(input?.schema==='testnet-trade-review-v2'){replayTradeReview(input);return input;}
+ if(['testnet-trade-review-v2','testnet-trade-review-v3'].includes(input?.schema)){replayTradeReview(input);return input;}
  if(input?.schema==='trade-history-observation-v1')return tradeReviewPacket(input);
  throw new Error('请选择历史采集或成交核验文件，不要导入密钥');
 }

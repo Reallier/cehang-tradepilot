@@ -13,8 +13,9 @@ test('research derives lifecycle coverage, separates synthetic evidence and dedu
 });
 test('draft, direction mismatch and unsupported experiments cannot inflate coverage',()=>{
  const e=newExperiment('short_full');assert.equal(report(e).rows[0].state,'needs_baseline');
+ assert.equal(report({...complete(),kind:'partial'}).rows[0].state,'needs_evidence');
  const short=attachResearchEvidence(e,guidedReview());assert.equal(report(short).rows[0].state,'direction_mismatch');
- for(const kind of ['partial','funding','monitor','size_leverage']){const p=report({...complete(),kind});assert.equal(p.rows[0].state,'unsupported');assert.equal(p.syntheticVerified,0);}
+ for(const kind of ['funding','monitor','size_leverage']){const p=report({...complete(),kind});assert.equal(p.rows[0].state,'unsupported');assert.equal(p.syntheticVerified,0);}
 });
 test('raw trade preserves baseline; explicit null in restored review removes stale baseline',()=>{
  const p=guidedReview(),e=attachResearchEvidence(newExperiment('long_full'),p.baseline);

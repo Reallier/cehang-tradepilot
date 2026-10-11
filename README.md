@@ -91,3 +91,7 @@ Open [CeHang TradePilot](https://reallier.com/demos/tradepilot/). Trading is dis
 ## Testnet experiment workspace
 
 Open **测试网实验台** to track independent experiments, associate baselines and saved trade evidence, inspect deduplicated coverage, and export/restore a replayable archive. Files stay in browser memory. See [workflow and acceptance boundaries](docs/TESTNET_EXPERIMENTS.md). This feature adds no order submission or background upstream requests.
+
+## 当前研究能力
+
+[能力与验收矩阵](docs/CURRENT_CAPABILITIES.md) · [研究流程升级与版本兼容](docs/RESEARCH_UPGRADE.md)。实验台支持可选的本机明文快照、后台复算、分批退出账本及固定条件计划；账户工作台可独立调整各市场价格、资金费和退出假设。真实测试网样本与合成测试分别标注，公开站点不下单。

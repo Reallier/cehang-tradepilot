@@ -1,6 +1,6 @@
 # Testnet research workspace
 
-The **测试网实验台** page organizes up to 20 experiments in browser memory. It sends no imported account data to the server and adds no background API polling. Export the workspace before refreshing; restore replaces the page's existing workspace. Exports contain private wallet/trade details and should not be publicly uploaded. Maximum complete export size is 8 MiB. No localStorage or unattended trading is added.
+The **测试网实验台** page organizes up to 20 experiments in browser memory. It sends no imported account data to the server and adds no background API polling. By default export before refreshing; optional local IndexedDB snapshots can restore work on this browser. Storage is plaintext, opt-in, and limited to three distinct versions; restore replaces the page's existing workspace. Exports contain private wallet/trade details and should not be publicly uploaded. Maximum complete export size is 8 MiB. No unattended trading is added. Current formats, staged exits, worker replay and fixed-condition plans are described in [RESEARCH_UPGRADE.md](RESEARCH_UPGRADE.md).
 
 ## Workflow
 

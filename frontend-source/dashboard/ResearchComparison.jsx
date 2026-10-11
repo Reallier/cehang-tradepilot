@@ -2,8 +2,8 @@ import React,{useMemo,useState} from 'react';
 import {compareResearch,COMPARISON_METRICS} from '../research-comparison.mjs';
 import {reviewNumber as num} from '../review-journeys.mjs';
 const sourceName=s=>s==='synthetic'?'合成示例':'测试网文件';
-export function ResearchComparison({workspace,onSelect,onExport,busy}){
- const report=useMemo(()=>compareResearch(workspace),[workspace]),[selected,setSelected]=useState('');
+export function ResearchComparison({workspace,onSelect,onExport,busy,report:provided}){
+ const report=useMemo(()=>provided??compareResearch(workspace),[workspace,provided]),[selected,setSelected]=useState('');
  const group=report.groups.find(g=>g.id===selected)??report.groups[0];
  const rows=report.rows.filter(r=>r.included&&r.groupId===group?.id),excluded=report.rows.filter(r=>!r.included);
  return <section className="tp-panel research-comparison" aria-label="跨实验对比">

@@ -3,6 +3,10 @@ const item=(code,title,why,next)=>({code,title,why,next});
 const collect='使用本机只读历史采集工具重新导出同一账户的订单、成交、仓位、账户流水及交易回执，保留原文件供比较。';
 const mismatch='对照同一笔交易的原始记录和回执重新采集；若仍不一致，保留未通过状态并检查采集或解码逻辑，不要手改金额或哈希。';
 const definitions={
+ SUPPORTED_LIFECYCLE:['生命周期超出连续退出支持范围','仅支持单次开仓后按序退出，且历史分页完整；加仓和抵押变更仍不支持。',collect],
+ EXIT_SEQUENCE:['退出顺序或前序证据不完整','必须先核验每次早于当前退出的仓位变更。',collect],
+ EXIT_SIZE_RANGE:['退出数量超出剩余仓位','本次退出必须大于零且不超过已核验的剩余数量。',mismatch],
+ REMAINING_BALANCES:['剩余数量或抵押不平','最终平仓必须释放剩余抵押，部分退出不得超额释放。',mismatch],
  UNIQUE_RECEIPT:['交易回执缺失或不唯一','该订单需要且只能关联一份保存回执。',collect],
  RECEIPT_MISSING:['缺少回执或交易详情','仅有交易哈希不足以核对链上事件。',collect],
  LOGS_MISSING:['回执缺少事件日志','无法从空日志核对成交与结算。',collect],
@@ -40,7 +44,7 @@ const definitions={
 };
 for(const code of ['CHAIN_IDENTITY_MISMATCH','BLOCK_MISMATCH','BLOCK_IDENTITY_MISMATCH','TRANSACTION_DESTINATION_MISMATCH','LOG_IDENTITY_MISMATCH'])definitions[code]=['交易、区块或合约身份不一致','保存的回执不能确认为同一网络、同一交易的完整证据。',mismatch];
 export function checkGuidance(code){const v=definitions[code];return v?item(code,...v):item('UNCLASSIFIED_CHECK','未能完成当前核验','当前证据尚未得到模型确认。','保留原始导出包，重新采集并检查模型版本；不要把未核验项目视为通过。');}
-const labels={ACCOUNT_MARKET_IDENTITY:'账户与市场身份',ORDER_FIELDS:'订单字段与支持范围',SCALING:'价格、数量及代币精度',UNIQUE_RECEIPT:'唯一交易回执',CHAIN_ENVELOPE:'网络、合约与区块身份',REQUEST_AND_FILL_EVENTS:'请求与成交事件',REQUEST_FILL:'退出请求与成交事件',REQUEST_LEVERAGE:'请求杠杆',REQUEST_IOC:'IOC 请求类型',NO_BUILDER_FEES:'附加费用支持范围',API_CHAIN_PRICE:'API 与链上成交价格',FILL_HISTORY_COVERAGE:'成交历史覆盖',FILL_HISTORY:'退出成交历史',SINGLE_OPEN_POSITION:'单次开仓结构',POSITION_HISTORY_IDENTITY:'开仓仓位历史',POSITION_EVENT_AMOUNTS:'开仓事件金额',PROTOCOL_FEE_COMPONENTS:'协议费用分项',ACCOUNT_SETTLEMENT:'账户结算流水',COLLATERAL_PLUS_FEE_DEBIT:'抵押与费用扣账',NUMERIC_RANGE:'数值安全范围',SINGLE_FILL_SUPPORTED:'单个退出成交事件',SINGLE_EXIT_EVENT:'唯一退出仓位记录',EXIT_EVENT_IDENTITY:'退出事件身份',EXIT_AMOUNTS:'退出数量及损益',VERIFIED_OPENING:'对应开仓已核验',SINGLE_OPEN_SINGLE_EXIT_LIFECYCLE:'单开单退生命周期及分页完整性',OPEN_PRECEDES_EXIT:'开仓先于退出',FULL_CLOSE_SIZE:'全部平仓数量',PARTIAL_CLOSE_SIZE:'部分退出数量',EXIT_COLLATERAL_AND_PRICE:'释放抵押及退出价格',ENTRY_FEE_SHARE:'开仓费用分摊',COLLATERAL_PNL_FEE_CREDIT:'退出账户入账'};
+const labels={SUPPORTED_LIFECYCLE:'连续退出范围及分页完整性',EXIT_SEQUENCE:'前序退出证据与顺序',EXIT_SIZE_RANGE:'退出数量与剩余仓位',REMAINING_BALANCES:'剩余仓位与抵押',ACCOUNT_MARKET_IDENTITY:'账户与市场身份',ORDER_FIELDS:'订单字段与支持范围',SCALING:'价格、数量及代币精度',UNIQUE_RECEIPT:'唯一交易回执',CHAIN_ENVELOPE:'网络、合约与区块身份',REQUEST_AND_FILL_EVENTS:'请求与成交事件',REQUEST_FILL:'退出请求与成交事件',REQUEST_LEVERAGE:'请求杠杆',REQUEST_IOC:'IOC 请求类型',NO_BUILDER_FEES:'附加费用支持范围',API_CHAIN_PRICE:'API 与链上成交价格',FILL_HISTORY_COVERAGE:'成交历史覆盖',FILL_HISTORY:'退出成交历史',SINGLE_OPEN_POSITION:'单次开仓结构',POSITION_HISTORY_IDENTITY:'开仓仓位历史',POSITION_EVENT_AMOUNTS:'开仓事件金额',PROTOCOL_FEE_COMPONENTS:'协议费用分项',ACCOUNT_SETTLEMENT:'账户结算流水',COLLATERAL_PLUS_FEE_DEBIT:'抵押与费用扣账',NUMERIC_RANGE:'数值安全范围',SINGLE_FILL_SUPPORTED:'单个退出成交事件',SINGLE_EXIT_EVENT:'唯一退出仓位记录',EXIT_EVENT_IDENTITY:'退出事件身份',EXIT_AMOUNTS:'退出数量及损益',VERIFIED_OPENING:'对应开仓已核验',SINGLE_OPEN_SINGLE_EXIT_LIFECYCLE:'单开单退生命周期及分页完整性',OPEN_PRECEDES_EXIT:'开仓先于退出',FULL_CLOSE_SIZE:'全部平仓数量',PARTIAL_CLOSE_SIZE:'部分退出数量',EXIT_COLLATERAL_AND_PRICE:'释放抵押及退出价格',ENTRY_FEE_SHARE:'开仓费用分摊',COLLATERAL_PNL_FEE_CREDIT:'退出账户入账'};
 export function checkLabel(code){return labels[code]??'其他核验项';}
 export function importFailure(error){
  const m=error?.message??'';

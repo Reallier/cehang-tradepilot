@@ -18,7 +18,7 @@ export function mergeResearchFiles(current,raws){
  for(let index=0;index<raws.length;index++){
   try{
    const packet=JSON.parse(raws[index]);
-   if(packet?.schema===RESEARCH_COMPARISON_SCHEMA)replayResearchComparison(packet);
+   if([RESEARCH_COMPARISON_SCHEMA,'testnet-research-comparison-v1'].includes(packet?.schema))replayResearchComparison(packet);
    else replayResearch(packet);
    for(const experiment of packet.workspace.experiments){
     const signature=hash(experiment);

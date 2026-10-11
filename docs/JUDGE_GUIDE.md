@@ -4,7 +4,7 @@
 
 Live product: https://reallier.com/demos/tradepilot/?tab=account
 
-No login, wallet, API key, deposit or transaction is required. Use a current desktop browser with JavaScript. The public app never places mainnet or testnet orders. Visitor records expire after 30 minutes or a service restart; local file imports stay in page memory and clear on refresh.
+No login, wallet, API key, deposit or transaction is required. Use a current desktop browser with JavaScript. The public app never places mainnet or testnet orders. Visitor records expire after 30 minutes or a service restart; local file imports stay in page memory unless the visitor explicitly enables browser-local research snapshots.
 
 ## Three-minute product walkthrough
 
@@ -33,8 +33,8 @@ node scripts/replay.mjs /absolute/path/to/exported-review.json
 | Area | Evidence and limitation |
 |---|---|
 | Public UI | HTTPS deployment and resource checks; current source builds independently |
-| Local model and safety | 113 tests in current source (110 at the deployed runtime release); synthetic coverage is identified explicitly |
-| Actual testnet lifecycle | Two previously collected user-operated long/full-close lifecycles; one with an earlier matching baseline. Saved-data replay only; private raw packets excluded |
+| Local model and safety | See [generated current acceptance](CURRENT_CAPABILITIES.md) for the dated test run and per-capability coverage; synthetic coverage is identified explicitly |
+| Actual testnet lifecycle | Limited previously collected user-operated long/full-close lifecycles, including a matching earlier baseline. Saved-data replay only; private raw packets excluded |
 | Account continuous updates | The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. |
 | Public wallet data | No owner account/credentials exposed; public update example is synthetic |
 | Model scope | No general strategy-profit claim; no independently established source provenance or consensus finality |

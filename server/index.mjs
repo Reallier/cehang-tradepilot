@@ -1,3 +1,4 @@
+import {RuntimeDiagnostics} from './runtime-diagnostics.mjs';
 import http from 'node:http';
 import {guidedReview} from './guided-review.mjs';
 let guidedPacket;
@@ -28,6 +29,7 @@ const config=demoConfig(),{port}=config,access=new DemoAccess(config);
 const protocolStore=new Store(path.resolve(process.env.TP_DATA_DIR??path.join(root,'data','public-demo')));
 const perpl=new Perpl(protocolStore);
 const publicBook=new PublicBookFeed(perpl);
+const diagnostics=new RuntimeDiagnostics();
 // Never expose a host account, even if environment variables later change.
 perpl.key=()=>null;
 const sessionSweep=setInterval(()=>access.sweep(),60000);sessionSweep.unref();
@@ -64,7 +66,8 @@ export const server=http.createServer({maxHeaderSize:8192,requestTimeout:15000,h
       if(p.startsWith('/api/testnet/'))return response(res,403,{error:'公共演示禁止所有交易和订单操作'});
       if(p==='/api/session'&&req.method==='GET')return response(res,200,{token:entry.session.token,expiresAt:new Date(entry.session.expires).toISOString(),publicDemo:true,testnetOrdersEnabled:false,mainnetOrdersEnabled:false,testnetMaxNotional:0});
     }
-    if(p==='/api/live'&&req.method==='GET')return response(res,200,await live(net(url.searchParams.get('network')??'mainnet'),url.searchParams.has('market')?Number(url.searchParams.get('market')):null));
+    if(p==='/api/diagnostics'&&req.method==='GET')return response(res,200,diagnostics.snapshot(perpl));
+    if(p==='/api/live'&&req.method==='GET'){const network=net(url.searchParams.get('network')??'mainnet');return response(res,200,await diagnostics.observe(network,()=>live(network,url.searchParams.has('market')?Number(url.searchParams.get('market')):null)));}
     if(p==='/api/guided-review'&&req.method==='GET')return response(res,200,guidedPacket??=guidedReview());
     if(p==='/api/account'&&req.method==='GET')return response(res,200,{configured:false,wallet:null,positions:null,publicDemo:true});
     if(p==='/api/local-monitor'&&req.method==='GET')return response(res,200,localMonitor(config,process.env.TP_LOCAL_MONITOR_FILE));
@@ -115,11 +118,11 @@ export const server=http.createServer({maxHeaderSize:8192,requestTimeout:15000,h
     if(p==='/api/health'&&req.method==='GET')return response(res,200,{status:'ok',project:'TradePilot competition',mainnetTrading:false,testnetTrading:false,version:'0.1.0'});
     if(p.startsWith('/api/'))return response(res,404,{error:'接口不存在'});
     if(req.method!=='GET'&&req.method!=='HEAD')return response(res,405,{error:'方法不允许'});
-    if(!['/','/index.html','/app.js','/app.css','/app.js.LEGAL.txt','/app.css.LEGAL.txt','/licenses.txt'].includes(p))return response(res,404,{error:'文件不存在'});
+    if(!/^\/chunks\/[a-zA-Z0-9_-]+\.js(?:\.LEGAL\.txt)?$/.test(p)&&!['/research-worker.js.LEGAL.txt','/research-worker.js','/','/index.html','/app.js','/app.css','/app.js.LEGAL.txt','/app.css.LEGAL.txt','/licenses.txt'].includes(p))return response(res,404,{error:'文件不存在'});
     const dist=path.join(root,'dist');const filename=path.resolve(dist,decodeURIComponent(p==='/'?'/index.html':p).slice(1));if(!filename.startsWith(dist+path.sep))return response(res,403,{error:'路径无效'});
     if(!fs.existsSync(filename)||!fs.statSync(filename).isFile())return response(res,404,{error:'文件不存在，请先构建前端'});
     const ext=path.extname(filename),mime={'.html':'text/html; charset=utf-8','.json':'application/json','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml','.txt':'text/plain; charset=utf-8'}[ext]??'application/octet-stream';
-    res.writeHead(200,{'Content-Type':mime,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'});fs.createReadStream(filename).pipe(res);
+    res.writeHead(200,{'Content-Type':mime,'Cache-Control':p.startsWith('/chunks/')?'public, max-age=31536000, immutable':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','X-Frame-Options':'DENY'});fs.createReadStream(filename).pipe(res);
   }catch(error){if(error.status===429)res.setHeader('Retry-After','60');response(res,error.status??400,{error:error.code?'无法完成此次操作':error.message});}finally{release?.();}
 });
 if(process.argv[1]===fileURLToPath(import.meta.url)){

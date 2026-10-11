@@ -159,3 +159,21 @@ test('clear cancels a pending merge; byte budget checks actual file text and pre
   assert.ok(container.textContent.includes('实验记录 · 0/20'));assert.equal(secondReads,0);assert.ok(!container.textContent.includes('合并完成'));assert.equal(button('创建实验').disabled,false);
  }finally{await act(async()=>root.unmount());}
 });
+
+
+test('importing two scenarios over the same observation restores the new parameters without retaining prior edits',async()=>{
+ const {portfolioExample}=await import('../server/portfolio-example.mjs');
+ const {defaultScenario,portfolioScenarioPacket,replayPortfolioScenario}=await import('../server/portfolio-scenarios.mjs');
+ const observation=portfolioExample(),scenario=defaultScenario(observation),downloads=[],root=createRoot(container);
+ async function file(packet){const n=container.querySelector('[aria-label="选择账户或成交证据文件"]');Object.defineProperty(n,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(packet)}]});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));await settle();}
+ try{
+  await act(async()=>root.render(el(AccountWorkbench,{active:true,api:async()=>({available:false}),tick:Date.now(),download:p=>downloads.push(p)})));
+  await file(portfolioScenarioPacket(observation,scenario));
+  assert.equal(container.querySelector('[aria-label="市场1 shockPct"]').value,'-10');
+  scenario.markets[0].shockPct=-20;scenario.markets[0].exitDepthPct=50;
+  await file(portfolioScenarioPacket(observation,scenario));
+  assert.equal(container.querySelector('[aria-label="市场1 shockPct"]').value,'-20');
+  assert.equal(container.querySelector('[aria-label="市场1 exitDepthPct"]').value,'50');
+  await click('导出逐市场情景');assert.equal(replayPortfolioScenario(downloads[0]).status,'reproduced');assert.deepEqual(downloads[0].scenario,scenario);
+ }finally{await act(async()=>root.unmount());}
+});
