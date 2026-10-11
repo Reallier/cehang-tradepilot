@@ -1,4 +1,17 @@
-# Current release — cross-experiment comparison
+# Current release — continuous testnet acceptance
+
+- Released 2026-10-12 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `2f83ec98ac142da8eec03f32939d5982a5bafbb0` is published on GitHub.
+- Image `localhost/tradepilot-demo:11404a161019`; archive SHA-256 `11404a1610191789981fa78d5346280d275203bff401eed7c7c05b660133512f`.
+- JS `549992fe11cf6c7602116d08cde7f5d24c14e665d915cdbddd53400c01a09794`; CSS `695dc054a081303787084fe4fa877b951e95bec5be940c21091363660ede5600`. Local build, running container and certificate-verified public HTTPS assets match.
+- Pod `tradepilot-55549bbcff-nxh27`: 1/1 Ready, zero restarts at acceptance. Manual K3s rollout; rollback `releases/11404a161019/previous-demo.yaml` restores `606b7b8d9a63`.
+- 156 tests passed. Build, tracked privacy and source/runtime Gitleaks scans passed. Public health/session retain both trading modes disabled; private account endpoints remain unavailable. Offline DOM interaction tests cover the new progress panel. This release does not claim fresh browser visual acceptance.
+- The original two-minute baseline window remains unchanged. Opening evidence, exit settlement, baseline matching and comparative eligibility are now displayed separately. The timer is local and pauses when the research tab is inactive.
+- The offline archive tool was exercised against private saved-testnet opening evidence and a later targeted collection. Opening replay passed, no exit was present, and the expired baseline correctly excluded the sample from comparison. Only the selected current receipt was needed in the targeted collection. No private files or identifiers were published, no trade was submitted by this release, and no second comparable lifecycle is claimed.
+- See CONTINUOUS_ACCEPTANCE.md for the batched collection/archive workflow, output permissions and evidence limitations.
+
+---
+
+# Previous release — cross-experiment comparison
 
 - Released 2026-10-11 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `1ff7f403bcd747381208dbe3846688307d2ea8e7` is published on GitHub. Later acceptance documentation does not change the runtime.
 - Image `localhost/tradepilot-demo:606b7b8d9a63`; config digest `7ff6c17504771dfea5d940332a70fc28313dbbe8210845839b7da1ab2245f579`. Archive SHA-256 `606b7b8d9a636d9f5cb8907c24d8441c5787e64eef41f731f63801fb4c9f3899`.
