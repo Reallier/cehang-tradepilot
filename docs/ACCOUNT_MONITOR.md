@@ -43,7 +43,7 @@ Open `http://127.0.0.1:8780/?tab=account`. Choose **读取最新观察** or **�
 
 110 automated tests pass, including concurrency/cooldown persistence, rate-limit backoff, auth/validation stop, missing/stale inputs, wallet mismatch, signed position changes, and public-route denial. Production build passes. Private live collection encountered HTTP 451 and stopped before a usable observation was collected; readiness configuration was present and no existing persistent restriction flag was cleared. A single bounded diagnostic identified the HTTP status. At that release check no further collection or proxy change was attempted; the later diagnostic below supersedes the access-failure status.
 
-At that point, sustained continuous account updates remained **unaccepted**; the later single-cycle diagnostic established only bounded read access. The UI and synthetic risk-change example are not evidence of continuous refresh. A later public-demo walkthrough exercised the judge path; it did not open the local monitor file. The three-cycle run below is the current live-monitor evidence.
+At that point, sustained continuous account updates remained **unaccepted**; the later single-cycle diagnostic established only bounded read access. The UI and synthetic risk-change example are not evidence of continuous refresh. A later public-demo walkthrough exercised the judge path; it did not open the local monitor file. Later bounded runs are recorded below; the 15-cycle run is the latest live-monitor evidence.
 
 ## Publication review fixes — 2026-10-10
 
@@ -60,4 +60,19 @@ Restoring both variables to the previously verified Perpl bypass and running `--
 
 The same proxy bypass and `--cycles 3` then completed three rounds, each logged as `observing` with no failure code. The retained pair is testnet chain 10143, report `empty_positions`, zero validation issues, the same wallet, and an increasing snapshot time. Evaluation times were `2026-10-10T15:42:24.757Z` and `2026-10-10T15:43:27.779Z`, 63 seconds apart. Each position-block time was within a few seconds of its local observation. The collector stopped at the requested limit, with `nextAttemptAt` left at `2026-10-10T15:44:27.779Z` and `failures` at 0. The file keeps at most two observations, so the first round is in the process log rather than `latest.json`. No order was submitted, and eligibility state was not rewritten.
 
-This accepts three consecutive bounded reads. It does not accept the default 15-round run, unattended scheduling, or a live recovery from HTTP 429 or 451. Those failure paths remain covered by automated tests only.
+This historical run accepted three consecutive bounded reads. At that time the default 15-round run was still pending; the later run below supersedes that item. Unattended scheduling and live HTTP 429/451 recovery remain unaccepted.
+
+
+## Default 15-cycle run — 2026-10-11 (Asia/Shanghai)
+
+The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted.
+
+- Started at `2026-10-11T11:49:05.921Z` and finished at `2026-10-11T12:03:46.105815+00:00` (UTC). All 15 rounds returned a new internally reproducible observation, with the same wallet identity and increasing timestamps. No HTTP failure or automatic backoff occurred.
+- Position snapshot ages at evaluation ranged from 1.610 to 3.270 seconds. Observation spacing ranged from 61.862 to 63.338 seconds; every attempt respected the previous persisted next-attempt time.
+- Rounds 11 and 14 returned `wallet:HEAD_NOT_COVERED` and `positions:HEAD_NOT_COVERED`. In round 11, context head 70105632 lagged wallet/positions blocks 70105660/70105661, although RPC head 70105665 covered them. Round 14 similarly had context head 70106267, wallet/positions block 70106281 and RPC head 70106285. The validator kept both observations incomplete. Rounds 12 and 15 recovered at the normal interval. No threshold, routing, eligibility or restriction state was changed to pass it.
+- The retained observations and both locally saved incomplete packets reproduced. The frontend freshness function returned stale for both incomplete packets and for expired complete data, and stopped after process completion. These are function-level checks, not new interactive browser acceptance.
+- A temporary loopback-only server read the real monitor file through both local endpoints; a later read advanced to the next observation with the same wallet. This file-reading path made no extra upstream calls. The temporary server exited.
+- Public HTTPS assets still matched the published runtime; both trading modes stayed disabled and both private local endpoints remained unavailable publicly. The downloaded synthetic lifecycle reproduced independently.
+- Per-round safe metrics and both incomplete raw packets are retained only in ignored private local storage with mode 0600. No account packet, credentials or wallet identity is published.
+
+Scope: completion of a bounded empty-position observation run, including safe incomplete-data handling and two naturally observed recoveries. This does not establish an all-complete 15-snapshot streak, live open-position change coverage, unattended operation, or recovery from actual authentication/rate-limit failures.

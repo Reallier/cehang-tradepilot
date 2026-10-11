@@ -35,10 +35,10 @@ node scripts/replay.mjs /absolute/path/to/exported-review.json
 | Public UI | HTTPS deployment and resource checks; current source builds independently |
 | Local model and safety | 110 automated tests; synthetic coverage is identified explicitly |
 | Actual testnet lifecycle | Two previously collected user-operated long/full-close lifecycles; one with an earlier matching baseline. Saved-data replay only; private raw packets excluded |
-| Account continuous updates | Three consecutive local testnet read-only cycles succeeded on 2026-10-10 at 23:43 Asia/Shanghai (chain 10143, empty positions, no validation issues). The collector stopped at the requested three-cycle limit. The default 15-cycle run, unattended polling, and live 429/451 recovery are **not accepted** |
+| Account continuous updates | The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. |
 | Public wallet data | No owner account/credentials exposed; public update example is synthetic |
 | Model scope | No general strategy-profit claim; no independently established source provenance or consensus finality |
 | Human usability | No external-user comprehension or adoption evidence yet; automated checks are not user interviews |
-| Videos | Technical demonstration and team/pitch video still pending |
+| Videos | Timed technical-demo storyboard and motivation narration drafted in [DEMO_RECORDING.md](DEMO_RECORDING.md); actual recording/upload and confirmed team introduction remain pending |
 
 See [history acceptance](HISTORY_ACCEPTANCE.md), [account monitor](ACCOUNT_MONITOR.md), [model assumptions](MODEL.md) and [build disclosure](BUILD_DISCLOSURE.md). The app is a pre-trade risk and post-trade validation tool; the current read-only build is not presented as a production automated trading bot.

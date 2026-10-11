@@ -84,10 +84,10 @@ Replay checks complete internal reproducibility. It does not authenticate the pr
 
 Completed locally: official read-scope enrollment; independently matched wallet configuration; readiness check; one bounded collection; collateral-unit and zero-position comparison against the official UI; private packet replay. Credentials, configuration, download export and observation file are mode 0600 in Git-ignored directories.
 
-Remaining:
+Subsequent acceptance and remaining limits:
 
-1. Subsequent opening-order receipt/fee/collateral reconciliation and a separate model/UI liquidation-price comparison passed; see [HISTORY_ACCEPTANCE.md](HISTORY_ACCEPTANCE.md). Test-position closure and realized settlement remain pending. A successful account read alone does not prove these results.
-2. Public presentation of reviewed evidence and any hosted account integration remain separate work. The public demo is still unconfigured for private accounts.
-3. The read key expires seven days after enrollment (2026-10-17 Asia/Shanghai). Renewal is manual; expiration must not be interpreted as an empty account. This one-off CLI run does not establish continuous monitoring.
+1. Two user-operated testnet long/full-close lifecycles passed opening and settlement reconciliation, including returned collateral, both fees and account credit. One matched a pre-trade baseline. A separate model/UI liquidation-price comparison also passed; see [HISTORY_ACCEPTANCE.md](HISTORY_ACCEPTANCE.md). These results come from separate history/receipt evidence, not from an empty-position snapshot.
+2. The public account workspace can recompute imported evidence in browser memory and offers a labeled synthetic full-cycle example. Hosted private-account integration remains disabled; the public service has no owner credentials or account packets.
+3. The read key expires seven days after enrollment (2026-10-17 Asia/Shanghai). Renewal is manual; expiration must not be interpreted as an empty account. See [ACCOUNT_MONITOR.md](ACCOUNT_MONITOR.md) for the separate bounded-monitor acceptance.
 
 Current automated coverage: signed requests, target allowlist, no-network preflight, identity mismatch stop, missing/empty/stale/unknown states, cross-account/instance/duplicate rejection, 429/451 stop behavior, replay tampering and private file permissions. Fixtures are synthetic and never count as actual users, funds or transactions.
