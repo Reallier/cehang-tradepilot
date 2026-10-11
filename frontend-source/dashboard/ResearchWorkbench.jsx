@@ -1,3 +1,4 @@
+import {mergeResearchFiles} from '../research-merge.mjs';
 import {ResearchProgress} from './ResearchProgress.jsx';
 import {RESEARCH_COMPARISON_SCHEMA,researchComparisonPacket,replayResearchComparison} from '../research-comparison.mjs';
 import {ResearchComparison} from './ResearchComparison.jsx';
@@ -8,22 +9,41 @@ import {TradeReview} from './TradeReview.jsx';
 import './research.css';
 const states={unsupported:'待扩展核验',needs_baseline:'待事前基线',direction_mismatch:'方向不一致',needs_trade:'待成交材料',needs_selection:'请选择成交',needs_evidence:'证据不足',baseline_mismatch:'基线未匹配',verified:'文件核验通过',partial:'部分退出',needs_exit:'待退出证据'};
 export function ResearchWorkbench({active,api,download,currentBaseline,onPrepare}){
- const [workspace,setWorkspace]=useState(emptyResearch),[selected,setSelected]=useState(null),[kind,setKind]=useState('short_full'),[drafts,setDrafts]=useState({}),[dirty,setDirty]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+ const [workspace,setWorkspace]=useState(emptyResearch),[selected,setSelected]=useState(null),[kind,setKind]=useState('short_full'),[drafts,setDrafts]=useState({}),[dirty,setDirty]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[mergeSummary,setMergeSummary]=useState(null);
  const generation=useRef(0),report=useMemo(()=>researchReport(workspace),[workspace]),experiment=workspace.experiments.find(e=>e.id===selected),row=report.rows.find(r=>r.id===selected);
  const draft=experiment?(drafts[experiment.id]??{title:experiment.title,purpose:experiment.purpose,notes:experiment.notes}):null;
  const withDrafts=()=>({experiments:workspace.experiments.map(e=>({...e,...drafts[e.id]}))});
- function setDraft(value){setDrafts(d=>({...d,[selected]:value}));setDirty(true);}
+ function setDraft(value){setMergeSummary(null);setDrafts(d=>({...d,[selected]:value}));setDirty(true);}
  useEffect(()=>{if(!dirty)return;const warn=e=>{e.preventDefault();e.returnValue='';};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[dirty]);
- function select(e){setSelected(e?.id??null);setError('');}
+ function select(e){setMergeSummary(null);setSelected(e?.id??null);setError('');}
  function replace(e){const next={experiments:workspace.experiments.map(x=>x.id===e.id?e:x)};researchPacket(next);setWorkspace(next);setDirty(true);}
  function add(e){const next={experiments:[...workspace.experiments,e]};researchPacket(next);setWorkspace(next);select(e);setDirty(true);}
  function exportWorkspace(){const packet=researchPacket(withDrafts());download(packet,'tradepilot-testnet-research.json');setDirty(false);}
- function action(fn){try{fn();setError('');}catch(e){setError(e.message);}}
- async function readFile(event,archive){const file=event.target.files?.[0];event.target.value='';if(!file)return;const token=++generation.current,target=experiment;setBusy(true);setError('');try{if(file.size>MAX_RESEARCH_BYTES)throw new Error('文件超过8MB');const raw=await file.text();if(new TextEncoder().encode(raw).length>MAX_RESEARCH_BYTES)throw new Error('文件超过8MB');if(token!==generation.current)return;if(archive){const imported=JSON.parse(raw);if(imported.schema===RESEARCH_COMPARISON_SCHEMA)replayResearchComparison(imported);const next=imported.schema===RESEARCH_COMPARISON_SCHEMA?imported.workspace:parseResearchFile(raw);setWorkspace(next);setDrafts({});setDirty(false);select(next.experiments[0]);}else{if(!target)throw new Error('请先创建实验');replace(attachResearchEvidence(target,JSON.parse(raw)));}}catch(e){if(token===generation.current)setError(e.message);}finally{if(token===generation.current)setBusy(false);}}
- async function example(){const token=++generation.current;setBusy(true);setError('');try{const packet=await api('/api/guided-review');if(token!==generation.current)return;const e=attachResearchEvidence(newExperiment('long_full'),packet);e.title='多头完整流程 · 合成示例';add(e);}catch(e){if(token===generation.current)setError(e.message);}finally{if(token===generation.current)setBusy(false);}}
+ function action(fn){setMergeSummary(null);try{fn();setError('');}catch(e){setError(e.message);}}
+ async function readFile(event,archive){const file=event.target.files?.[0];event.target.value='';if(!file)return;const token=++generation.current,target=experiment;setBusy(true);setError('');setMergeSummary(null);try{if(file.size>MAX_RESEARCH_BYTES)throw new Error('文件超过8MB');const raw=await file.text();if(new TextEncoder().encode(raw).length>MAX_RESEARCH_BYTES)throw new Error('文件超过8MB');if(token!==generation.current)return;if(archive){const imported=JSON.parse(raw);if(imported.schema===RESEARCH_COMPARISON_SCHEMA)replayResearchComparison(imported);const next=imported.schema===RESEARCH_COMPARISON_SCHEMA?imported.workspace:parseResearchFile(raw);setWorkspace(next);setDrafts({});setDirty(false);select(next.experiments[0]);}else{if(!target)throw new Error('请先创建实验');replace(attachResearchEvidence(target,JSON.parse(raw)));}}catch(e){if(token===generation.current)setError(e.message);}finally{if(token===generation.current)setBusy(false);}}
+ async function mergeFiles(event){
+  const files=Array.from(event.target.files??[]);event.target.value='';if(!files.length)return;
+  const token=++generation.current,current=withDrafts(),selectedId=selected;setBusy(true);setError('');setMergeSummary(null);
+  try{
+   if(files.length>20)throw new Error('每批最多选择20个档案');
+   if(files.reduce((sum,f)=>sum+f.size,0)>MAX_RESEARCH_BYTES)throw new Error('本批档案总计超过8MB，请分批导入');
+   const raws=[];let bytes=0;
+   for(const file of files){
+    const raw=await file.text();if(token!==generation.current)return;
+    bytes+=new TextEncoder().encode(raw).length;if(bytes>MAX_RESEARCH_BYTES)throw new Error('本批档案总计超过8MB，请分批导入');raws.push(raw);
+   }
+   const result=mergeResearchFiles(current,raws);if(token!==generation.current)return;
+   setWorkspace(result.workspace);setDrafts({});setDirty(d=>d||result.summary.added>0);
+   setSelected(selectedId??result.workspace.experiments[0]?.id??null);setMergeSummary(result.summary);
+  }catch(e){if(token===generation.current)setError(`${e.message}。原工作区与草稿已保留。`);}
+  finally{if(token===generation.current)setBusy(false);}
+ }
+ async function example(){const token=++generation.current;setBusy(true);setError('');setMergeSummary(null);try{const packet=await api('/api/guided-review');if(token!==generation.current)return;const e=attachResearchEvidence(newExperiment('long_full'),packet);e.title='多头完整流程 · 合成示例';add(e);}catch(e){if(token===generation.current)setError(e.message);}finally{if(token===generation.current)setBusy(false);}}
  return <section hidden={!active} className="research-workspace" aria-label="测试网实验台">
  <header className="tp-panel"><span className="eyebrow">TESTNET RESEARCH / MONAD 10143</span><h1>测试网实验台</h1><p>每轮实验留下目的、事前基线、成交证据和复盘。覆盖数量按独立成交去重，合成案例单独统计。</p><p className="tp-note">文件仅在页面内存中复算，不上传、不自动保存。草稿切换实验时保留在本页，刷新前请导出；导出文件可能包含钱包和交易记录，请私下保管。文件通过不认证来源或当前链状态，也不证明策略收益。</p>
- <div className="research-actions"><button disabled={busy||!workspace.experiments.length} onClick={()=>action(exportWorkspace)}>导出研究工作区</button><label className="research-file">恢复工作区（替换本页）<input aria-label="恢复研究工作区" type="file" accept=".json,application/json" disabled={busy} onChange={e=>readFile(e,true)}/></label><button onClick={()=>{generation.current++;setWorkspace(emptyResearch());setDrafts({});setDirty(false);select(null);setBusy(false);}}>清空实验台</button></div></header>
+ <div className="research-actions"><button disabled={busy||!workspace.experiments.length} onClick={()=>action(exportWorkspace)}>导出研究工作区</button><label className="research-file">恢复工作区（替换本页）<input aria-label="恢复研究工作区" type="file" accept=".json,application/json" disabled={busy} onChange={e=>readFile(e,true)}/></label><label className="research-file">合并研究档案（可多选）<input aria-label="合并研究档案" type="file" multiple accept=".json,application/json" disabled={busy} onChange={mergeFiles}/></label><button onClick={()=>{setMergeSummary(null);generation.current++;setWorkspace(emptyResearch());setDrafts({});setDirty(false);select(null);setBusy(false);}}>清空实验台</button></div></header>
+ {mergeSummary&&<p className="tp-note" role="status">合并完成：{mergeSummary.files}个档案，新增{mergeSummary.added}轮，跳过{mergeSummary.existing}条相同实验，当前共{mergeSummary.total}轮。当前草稿已保留；新增记录需导出保存。</p>}
+ {busy&&<p className="tp-note" role="status">正在读取并复算材料；清空实验台可取消本次导入。</p>}
  {dirty&&<p className="tp-note" role="status">有尚未导出的研究更改；导出会包含当前文字草稿。</p>}
  {error&&<p role="alert" className="tp-alert">{error}</p>}
  <section className="tp-panel"><h2>实验覆盖</h2><div className="table-scroll"><table className="plain-table"><thead><tr><th>实验类型</th><th>测试网文件核验</th><th>合成核验</th><th>核验能力</th></tr></thead><tbody>{report.coverage.map(c=><tr key={c.kind}><td>{EXPERIMENT_TYPES.find(t=>t.id===c.kind).label}</td><td>{c.savedTestnet}</td><td>{c.synthetic}</td><td>{c.supported?'单次开仓 / 全量退出':'待扩展，不能判定通过'}</td></tr>)}</tbody></table></div></section>

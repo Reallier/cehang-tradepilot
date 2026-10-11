@@ -76,3 +76,16 @@ Use the already approved network route. Existing eligibility, protocol restricti
 **2026-10-11 follow-up:** after correcting the browser route, the official testnet page became accessible and a later bounded account observation completed with empty positions. REST book responses returned HTTP 200 but lagged context by 1,470 blocks in one diagnostic read; a separate 20-second public WebSocket observation returned a fresh snapshot, a book update and advancing heartbeats. The new CLI then saved a short baseline from a roughly 9-second-old snapshot, and the independent replay command reproduced it. This proves snapshot acquisition and pre-trade preparation only: no new order was submitted, short opening/full-exit acceptance remains pending, and the saved baseline expires after two minutes. Public demo data fetching remains unchanged by this local CLI addition.
 
 Protocol references: [REST snapshot timestamps](https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1market-datamarket_idbook), [public WebSocket subscriptions](https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#market-data-websocket).
+
+## Batch archive merge (2026-10-12)
+
+Use **合并研究档案（可多选）** to combine saved research and comparison JSON files without replacing the current workspace. Select up to 20 files, with a combined UTF-8 size at most 8 MiB. The final workspace still permits at most 20 experiments and must fit the complete 8 MiB research export limit.
+
+- Every incoming packet is independently replayed before any change is applied. The entire batch succeeds or fails together.
+- The same experiment ID with identical content is skipped. The same ID with different content, including local unsaved notes, rejects the entire batch. The error identifies the file number and experiment. Export the current workspace and inspect the versions before deciding which to retain; merge never silently picks one or changes IDs.
+- Different experiment IDs are retained even when they reference one lifecycle. Existing coverage and comparison rules still count that lifecycle only once, and exclude conflicting evidence.
+- Current drafts and selection are retained. The result reports files, newly added experiments and identical records skipped. Export the combined workspace to keep it; files and drafts remain in browser memory only.
+- Clear cancels an in-flight import. A late file read cannot restore cleared state. Invalid JSON, failed replay, conflicts and size/count limits leave the original workspace and drafts untouched.
+- **恢复工作区（替换本页）** remains the explicit replacement action. It is distinct from merge.
+
+This feature is local-only: no uploads, account reads, chain queries or wallet actions. Packet integrity and replay do not certify provenance, current chain state or profitability. Automated DOM tests cover draft retention, atomic rejection, late-read cancellation and byte-budget enforcement; they are not browser visual acceptance.

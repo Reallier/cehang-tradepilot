@@ -122,3 +122,40 @@ test('cross-experiment panel excludes drafts, deduplicates examples and exports 
   assert.deepEqual(calls,['/api/guided-review','/api/guided-review']);
  }finally{await act(async()=>root.unmount());}
 });
+
+test('batch merge keeps selected drafts, reports deduplication, rejects conflicts and a corrupt second file atomically',async()=>{
+ const {newExperiment,researchPacket}=await import('../frontend-source/research-workspace.mjs');
+ const {researchComparisonPacket}=await import('../frontend-source/research-comparison.mjs');
+ const downloads=[],calls=[],root=createRoot(container);
+ const props={active:true,api:async route=>{calls.push(route);return guidedReview();},download:p=>downloads.push(p),onPrepare:()=>{}};
+ async function merge(raws){const n=container.querySelector('[aria-label="合并研究档案"]');assert.equal(n.multiple,true);Object.defineProperty(n,'files',{configurable:true,value:raws.map(raw=>({size:100,text:async()=>raw}))});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));await settle();}
+ try{
+  await act(async()=>root.render(el(ResearchWorkbench,props)));await click('创建实验');await click('导出研究工作区');
+  const original=downloads[0];await input('实验名称','未保存的名称');
+  const incoming={experiments:[newExperiment('long_full')]};
+  await merge([JSON.stringify(researchPacket(incoming)),JSON.stringify(researchComparisonPacket(incoming))]);
+  assert.ok(container.textContent.includes('新增1轮，跳过1条相同实验'));assert.ok(container.textContent.includes('实验记录 · 2/20'));
+  assert.equal(container.querySelector('[aria-label="实验名称"]').value,'未保存的名称');
+  await click('导出研究工作区');const good=downloads.at(-1);assert.equal(good.workspace.experiments[0].title,'未保存的名称');assert.equal(replayResearch(good).experiments,2);
+  await merge([JSON.stringify(original)]);assert.match(container.querySelector('[role="alert"]').textContent,/不同版本/);
+  const third=researchPacket({experiments:[newExperiment('long_full')]});
+  await merge([JSON.stringify(third),'{']);assert.match(container.querySelector('[role="alert"]').textContent,/第2个档案/);
+  await click('导出研究工作区');assert.deepEqual(downloads.at(-1),good);assert.deepEqual(calls,[]);
+ }finally{await act(async()=>root.unmount());}
+});
+
+test('clear cancels a pending merge; byte budget checks actual file text and preserves current drafts',async()=>{
+ const {newExperiment,researchPacket,MAX_RESEARCH_BYTES}=await import('../frontend-source/research-workspace.mjs');
+ const root=createRoot(container);let resolve,secondReads=0;
+ async function files(value){const n=container.querySelector('[aria-label="合并研究档案"]');Object.defineProperty(n,'files',{configurable:true,value});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));}
+ try{
+  await act(async()=>root.render(el(ResearchWorkbench,{active:true,api:async()=>{throw new Error('No network expected');},download:()=>{},onPrepare:()=>{}})));
+  await click('创建实验');await input('实验名称','保留草稿');
+  await files([{size:1,text:async()=> ' '.repeat(MAX_RESEARCH_BYTES+1)}]);await settle();
+  assert.match(container.querySelector('[role="alert"]').textContent,/超过8MB/);assert.equal(container.querySelector('[aria-label="实验名称"]').value,'保留草稿');
+  await files([{size:1,text:()=>new Promise(r=>{resolve=r;})},{size:1,text:async()=>{secondReads++;return '{}';}}]);
+  assert.equal(button('创建实验').disabled,true);await click('清空实验台');
+  await act(async()=>resolve(JSON.stringify(researchPacket({experiments:[newExperiment('long_full')]}))));await settle();
+  assert.ok(container.textContent.includes('实验记录 · 0/20'));assert.equal(secondReads,0);assert.ok(!container.textContent.includes('合并完成'));assert.equal(button('创建实验').disabled,false);
+ }finally{await act(async()=>root.unmount());}
+});

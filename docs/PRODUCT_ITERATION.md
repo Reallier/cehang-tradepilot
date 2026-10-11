@@ -54,3 +54,7 @@ Implemented independent local read-only sampling, persisted cooldown/stop status
 ## Continuous acceptance (2026-10-12)
 
 The research panel now separates opening, settlement, baseline and comparative eligibility, including an original-window countdown and contextual next steps. A bounded read followed by the offline archive CLI produces replayable research/comparison files and a private status summary together. See CONTINUOUS_ACCEPTANCE.md. No extra protocol calls, trade authority or browser persistence is added.
+
+### 2026-10-12 — Research archive batch merge
+
+Added a local, atomic multi-file merge for independently replayed research/comparison archives. Existing drafts and experiment selection survive; identical IDs/content are deduplicated, alternate versions are rejected without overwrite, and lifecycle counts retain their existing deduplication rules. The batch is bounded to 20 files / 8 MiB input, 20 resulting experiments and the existing full-export size limit. Clear cancels pending work. No dependencies, endpoints, upstream requests or order capabilities were added. See TESTNET_EXPERIMENTS.md for workflow and limitations.
