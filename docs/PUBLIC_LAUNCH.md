@@ -1,4 +1,18 @@
-# Current release — budget sizing and complete account-page clear
+# Current release — testnet research workspace
+
+- Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `0203eaa7e611ea2ea3156bdb9eb38d0ad3b6ec82` is published on GitHub; this acceptance documentation is a later commit.
+- Image `localhost/tradepilot-demo:29fbab380ce1`; config digest `642f11cc5ec8394b9558c9d707e968aa46ad2f7d335de06c6b7f02086540edf3`.
+- Archive SHA-256 `29fbab380ce1b16bfbc4ff07f3220504fe5ce73f4d48f00f670885723f602501`.
+- JS `bad645bebd793728d5f1acf53ba9e7d4097f384eadf5b4f0ff5f39f48d7fa3ab`; CSS `9b611f9599ccf40435356d23f1f07b31edacfc1f12d2d5f15dc00a475c6446bf`. Build, running container and certificate-verified public HTTPS assets match.
+- Pod `tradepilot-96fcf8cb5-9227r`: 1/1 Ready, zero restarts at acceptance. Manual K3s rollout; rollback `releases/29fbab380ce1/previous-demo.yaml` restores `84ef06e4eeeb`.
+- 126 tests pass, including offline React export/restore, tab retention and cancellation after clear. Build, tracked privacy scan and Gitleaks source/history scans pass. Runtime excludes development dependencies; private credential/wallet substring checks found no matches.
+- Public health/session checks confirm both trading modes disabled; private observation/monitor routes return unavailable. Public synthetic guided review imports into the experiment engine and independently replays as one synthetic lifecycle and zero saved-testnet lifecycles.
+- Existing private testnet baseline/trade files independently replay as one saved-testnet lifecycle. A different baseline remains uncounted. A prepared two-experiment archive remains on the owner's machine; no account data was published or deployed.
+- This release performs no new upstream account collection or transaction. Browser visual acceptance was not repeated under the existing Computer Use restriction. Targeted receipt collection, broader lifecycle support and actual short testnet acceptance remain pending; see TESTNET_EXPERIMENTS.md.
+
+---
+
+# Previous release — budget sizing and complete account-page clear
 
 - Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `4894eeac1ac0f56d8e535ba603214d15250d022b` is published on GitHub. Later acceptance-documentation commits do not change this runtime.
 - Image `localhost/tradepilot-demo:84ef06e4eeeb`; config digest `15ca8c7b2a3f7b302c33024137b9c68cea34b3f8f0d6b81f0f6f78beead03a03`; source revision label verified.
