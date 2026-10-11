@@ -23,3 +23,7 @@ Group metrics report count, equally weighted mean, median and range. They do not
 `testnet-research-comparison-v1` contains the workspace, derived report and hashes. `node scripts/replay.mjs <file>` rebuilds all evidence checks and statistics, rejecting changed reports even if their hash was recomputed. The comparison archive can restore the research workspace; export includes current text drafts. Existing `testnet-research-workspace-v1` archives retain their schema and replay behavior. Files remain browser-local and may contain private wallet/transaction information; save them privately. The existing 20-experiment / 8-MiB bounds remain.
 
 This adds comparisons between supported single-opening/full-exit experiments. The separate `size_leverage`, partial-exit, funding-cycle and long-observation acceptance types remain unsupported; a descriptive comparison does not certify those test protocols.
+
+## Acceptance
+
+151 regression tests pass, including independently encoded long/short evidence, scenario/source partitioning, duplicate/conflicting baseline handling, units, replay tampering, local exports and archive restore. Local browser acceptance inspected the populated synthetic comparison table; it is not live-chain proof. An existing private saved-testnet research archive replays as one eligible lifecycle and one excluded experiment lacking a pre-trade baseline: there are not yet two comparable real samples in that archive. The private archive and derived comparison are not published.

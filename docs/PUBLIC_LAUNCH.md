@@ -1,4 +1,17 @@
-# Current release — feed quality and research continuity
+# Current release — cross-experiment comparison
+
+- Released 2026-10-11 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `1ff7f403bcd747381208dbe3846688307d2ea8e7` is published on GitHub. Later acceptance documentation does not change the runtime.
+- Image `localhost/tradepilot-demo:606b7b8d9a63`; config digest `7ff6c17504771dfea5d940332a70fc28313dbbe8210845839b7da1ab2245f579`. Archive SHA-256 `606b7b8d9a636d9f5cb8907c24d8441c5787e64eef41f731f63801fb4c9f3899`.
+- JS `3f9cd1e4bc67e56912f490d91188ba72cc796e6204d1ef9383bce5ce76776754`; CSS `163c4e315b354337736013ab6adc0ba52c97fd94d9a306c617755266ed2d863d`. Local build, running container and certificate-verified public HTTPS assets match.
+- Pod `tradepilot-78fbb588cb-f5btd`: 1/1 Ready, zero restarts at acceptance. Manual K3s rollout; rollback `releases/606b7b8d9a63/previous-demo.yaml` restores `4de8150d3dc3`. Proxy, state volume, collection budgets and permissions are unchanged.
+- 151 tests passed; build, tracked privacy scan and Gitleaks source/runtime scans passed. Public health/session retain both trading modes disabled and private account endpoints unavailable. The public synthetic case independently reproduces as one included sample plus one excluded duplicate when referenced by two experiments.
+- Local browser inspected the populated descriptive statistics and per-lifecycle table. Public acceptance is HTTP/API and exact asset matching, not a repeated public visual test. A label-string check initially expected literal Chinese; bundler escaping was identified, and module presence was checked against the matching asset bytes instead.
+- Existing private research files reproduce as one eligible saved-testnet lifecycle and one experiment missing a pre-trade baseline. No second comparable real sample is claimed, and private evidence was not deployed or published. No new protocol account read or trade was performed by this release.
+- Comparison runs locally, partitions incompatible sources/scenarios, excludes conflicting duplicates, exports independently replayable evidence and preserves the old research archive format. See RESEARCH_COMPARISON.md for units and limits.
+
+---
+
+# Previous release — feed quality and research continuity
 
 - Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `8bd9ab24cc925ee58ce61c3f6ff121f9c545ed89` is published on GitHub. This later documentation commit does not change the runtime.
 - Image `localhost/tradepilot-demo:4de8150d3dc3`; config digest `c3697b217b9003ea679f50b74781b7f4d849b1f1c0d3e0c07337b86146a121e8`. Archive SHA-256 `4de8150d3dc32bca57c04770aa83f8f72747c813c58a69e940f6aa2995975102`.
