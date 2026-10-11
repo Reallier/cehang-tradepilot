@@ -13,7 +13,7 @@ NO_PROXY=testnet.perpl.xyz,perpl.xyz,.perpl.xyz no_proxy=testnet.perpl.xyz,perpl
 
 Both bypass variables are intentional for the previously verified local route: Node’s environment proxy agent gives `no_proxy` precedence over `NO_PROXY`. An inherited lowercase value can silently override an uppercase-only setting. Merge other required bypass entries for your environment; this is not an instruction to override protocol eligibility or a persistent restriction.
 
-This is an explicitly started, bounded process, not a permanently scheduled account monitor. It permits 1–30 rounds, defaults to 15, and stops after at most 30 minutes plus any in-flight bounded request. Each round reads chain ID, wallet, positions, context and chain head sequentially. At least 60 seconds elapse after a successful round before another starts. Existing protocol restriction state and eligibility gates are preserved.
+This is an explicitly started, bounded process, not a permanently scheduled account monitor. It permits 1–30 rounds, defaults to 15, and stops after at most 30 minutes plus any in-flight bounded request. Each round reads chain ID, wallet, positions, context and chain head sequentially (five requests normally). The monitor alone enables at most one extra public-context read as described below (six requests maximum). At least 60 seconds elapse after a successful round before another starts. Existing protocol restriction state and eligibility gates are preserved.
 
 429 respects the longer of Retry-After and exponential backoff (60/120/240 seconds). Three consecutive failed rounds stop automatic collection, but the third failure still persists the later server/local deadline for a future manual restart. Authentication, restriction, identity and validation failures stop immediately. Next-attempt times are persisted even after stopping, so restarting does not erase a cooldown. A single-writer lock prevents two monitor processes using the same output directory. Other existing CLI readers are separate processes; their request budgets are not claimed to be globally coordinated.
 
@@ -76,3 +76,21 @@ The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 
 - Per-round safe metrics and both incomplete raw packets are retained only in ignored private local storage with mode 0600. No account packet, credentials or wallet identity is published.
 
 Scope: completion of a bounded empty-position observation run, including safe incomplete-data handling and two naturally observed recoveries. This does not establish an all-complete 15-snapshot streak, live open-position change coverage, unattended operation, or recovery from actual authentication/rate-limit failures.
+
+
+## Bounded context synchronization — 2026-10-11
+
+The monitor now enables one optional context catch-up. If valid wallet/position snapshot blocks exceed the context head, and their oldest timestamp still has at least 32 seconds left in the existing 45-second validity window, it waits 10 seconds. It then checks that at least 22 seconds remain (12-second REST timeout plus 10-second final RPC timeout) before making one uncached public-context request. Wallet and position data are not read again or edited. The normal request guard still applies; rejected requests are never retried by this logic. The original 60-second interval starts after the whole round finishes.
+
+If context is still behind, timestamps expire, or RPC does not cover the snapshots, the existing analyzer still reports incomplete. Wrong identity, chain, schema or authentication remains a failure. No head/timestamp is synthesized, no eligibility/restriction is cleared, and no stored historical packet is rewritten. The official [GasPrice type](https://github.com/PerplFoundation/api-docs/blob/main/types.md#gasprice) identifies `h` as the context head; this change preserves the existing coverage check rather than interpreting stale context as current.
+
+The option defaults off in `collectAccount`; only `watch-account.mjs` enables it. One-off account/history collection retains its existing request limits. Sequential observations are still not an atomic account/market snapshot. The extra wait can make an observation older, so expired data continues to be marked incomplete.
+
+Validation:
+
+- 113 tests pass in the updated source, including bounded catch-up success, persistent lag, cache bypass, insufficient lifetime/oversleep, default-off behavior, and 401/403/429/451 rejection with preserved cooldown/restriction. Full build and whitespace checks pass.
+- A subsequent three-round actual testnet run finished at `2026-10-11T12:10:51.693Z`. Request tracing recorded exactly five requests per round, all HTTP 200; no extra context request was needed. The retained two observations are complete empty-position reports with no issues, and the collector stopped normally with its writer lock released. The first round retains process/request evidence only.
+- Both historical incomplete packets still reproduce as incomplete. No evidence has been upgraded by changing the validator.
+- The extra-read recovery branch was exercised with synthetic transport fixtures, not naturally triggered in this three-round live sample. No measured improvement rate, extended all-complete streak, or live failure-recovery claim is made.
+
+This source/local-collector update does not change the public demo behavior. The deployed runtime identity remains recorded in PUBLIC_LAUNCH.md; public account credentials and trading remain disabled.

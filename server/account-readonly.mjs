@@ -1,3 +1,4 @@
+import {setTimeout as sleep} from 'node:timers/promises';
 import {Perpl,NETWORKS} from './perpl.mjs';
 import {hash} from './store.mjs';
 import {analyzeAccount} from './account-analysis.mjs';
@@ -31,7 +32,17 @@ export function accountReadiness({eligibility,expectedWallet,keyConfigured}) {
 }
 
 
-export async function collectAccount(reader,{eligibility,expectedWallet}) {
+// A single context catch-up is opt-in for the bounded monitor only. Reserve the
+// full REST (12s) and final RPC (10s) timeouts inside the 45s validity window.
+function contextLag(wallet,positions,context,now,reserveMs){
+  const stamps=[wallet?.at,positions?.at];
+  if(context?.chain?.chain_id!==10143||!uint(context?.chain?.gas?.h)||
+    stamps.some(s=>!uint(s?.b)||!Number.isFinite(s?.t)||s.t>now+5000||now-s.t>45000-reserveMs)||
+    wallet.sn!==wallet.at.b||positions.sn!==positions.at.b)return false;
+  return Math.max(wallet.at.b,positions.at.b)>context.chain.gas.h;
+}
+
+export async function collectAccount(reader,{eligibility,expectedWallet,contextCatchUp=false},{wait=sleep}={}) {
   const readiness=accountReadiness({eligibility,expectedWallet,keyConfigured:Boolean(reader.key('testnet'))});
   if(!readiness.ready)return {status:'not_ready',...readiness};
   // All reads are bounded and sequential: stop immediately on protocol rejection.
@@ -40,7 +51,15 @@ export async function collectAccount(reader,{eligibility,expectedWallet}) {
   const wallet=await reader.call('testnet','/v1/trading/wallet',{auth:true});
   if(!address(wallet.value?.addr)||wallet.value.addr.toLowerCase()!==expectedWallet.toLowerCase())fail('WALLET_IDENTITY_MISMATCH');
   const positions=await reader.call('testnet','/v1/trading/positions',{auth:true});
-  const context=await reader.context('testnet');
+  let context=await reader.context('testnet');
+  if(contextCatchUp&&contextLag(wallet.value,positions.value,context.value,reader.now(),32000)){
+    await wait(10000);
+    if(contextLag(wallet.value,positions.value,context.value,reader.now(),22000)){
+      // Bypass the 15-second process cache once, keeping the normal request guard.
+      // Do not retry a rejected request, re-read the account, or edit any stamp.
+      context=await reader.call('testnet','/v1/pub/context');
+    }
+  }
   const rpcHead=Number(BigInt(await reader.rpc('testnet','eth_blockNumber',[])));
   const snapshot={expectedWallet,wallet:wallet.value,positions:positions.value,context:context.value,rpcChainId,rpcHead,now:reader.now(),sources:[wallet.source,positions.source,context.source]};
   const report=analyzeAccount(snapshot);

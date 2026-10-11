@@ -33,7 +33,7 @@ node scripts/replay.mjs /absolute/path/to/exported-review.json
 | Area | Evidence and limitation |
 |---|---|
 | Public UI | HTTPS deployment and resource checks; current source builds independently |
-| Local model and safety | 110 automated tests; synthetic coverage is identified explicitly |
+| Local model and safety | 113 tests in current source (110 at the deployed runtime release); synthetic coverage is identified explicitly |
 | Actual testnet lifecycle | Two previously collected user-operated long/full-close lifecycles; one with an earlier matching baseline. Saved-data replay only; private raw packets excluded |
 | Account continuous updates | The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. |
 | Public wallet data | No owner account/credentials exposed; public update example is synthetic |

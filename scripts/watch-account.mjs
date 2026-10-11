@@ -23,7 +23,7 @@ try{
  monitor=new AccountMonitor({initial:restored,cooldownUntil:()=>reader.cooldowns.get('testnet')??0,collect:async()=>{
   const eligibility=readEligibility();
   if(!accountReadiness({eligibility,expectedWallet:config.expectedWallet,keyConfigured:Boolean(reader.key('testnet'))}).ready)throw new Error('READINESS_STOP');
-  return collectAccount(reader,{eligibility,expectedWallet:config.expectedWallet});
+  return collectAccount(reader,{eligibility,expectedWallet:config.expectedWallet,contextCatchUp:true});
  }});
  const outputStore=new Store(output);write=()=>outputStore.save('latest',monitor.value);
  for(const signal of ['SIGINT','SIGTERM'])process.once(signal,()=>{stopping=true;});

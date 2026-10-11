@@ -115,3 +115,45 @@ test('429 cooldown prevents another request; public 451 persists restriction; 40
     if(code===451)assert.equal(reader.store.get('restriction_testnet').blocked,true);
   }
 });
+
+
+test('monitor context catch-up keeps account stamps and makes at most one uncached public read',async t=>{
+ for(const recovered of [true,false]){
+  const f=fixture();f.context.chain.gas.h=99;const {reader,calls}=readerFor(t,f);let waits=0;
+  const packet=await collectAccount(reader,{eligibility:approval,expectedWallet,contextCatchUp:true},{wait:async ms=>{
+   assert.equal(ms,10000);waits++;f.now+=ms;if(recovered)f.context.chain.gas.h=100;
+  }});
+  assert.equal(waits,1);assert.equal(calls.length,6);
+  assert.equal(calls.filter(c=>c.url.endsWith('/pub/context')).length,2);
+  assert.equal(calls.filter(c=>c.url.endsWith('/wallet')).length,1);
+  assert.equal(calls.filter(c=>c.url.endsWith('/positions')).length,1);
+  assert.deepEqual(packet.snapshot.wallet.at,f.wallet.at);
+  assert.deepEqual(packet.snapshot.positions.at,f.positions.at);
+  assert.equal(packet.report.status,recovered?'observed_positions':'incomplete');
+  assert.equal(replayAccount(packet).status,'reproduced');
+ }
+});
+test('catch-up is skipped by default, without lag, or without enough snapshot lifetime',async t=>{
+ for(const mode of ['default','covered','old']){
+  const f=fixture();if(mode!=='covered')f.context.chain.gas.h=99;if(mode==='old')f.now+=14000;
+  const {reader,calls}=readerFor(t,f);let waits=0;
+  const p=await collectAccount(reader,{eligibility:approval,expectedWallet,contextCatchUp:mode!=='default'},{wait:async()=>{waits++;}});
+  assert.equal(calls.length,5);assert.equal(waits,0);assert.equal(p.report.status,mode==='covered'?'observed_positions':'incomplete');
+ }
+ const f=fixture();f.context.chain.gas.h=99;const {reader,calls}=readerFor(t,f);
+ const p=await collectAccount(reader,{eligibility:approval,expectedWallet,contextCatchUp:true},{wait:async()=>{f.now+=24000;}});
+ assert.equal(calls.length,5);assert.equal(p.report.status,'incomplete');
+});
+test('rejected context catch-up stops before final RPC and retains protocol cooldown/restriction',async t=>{
+ for(const code of [401,403,429,451]){
+  const f=fixture();f.context.chain.gas.h=99;const {reader,calls}=readerFor(t,f);let catchUpRequests=0;
+  const packet=collectAccount(reader,{eligibility:approval,expectedWallet,contextCatchUp:true},{wait:async()=>{
+   f.now+=10000;reader.request=async(url)=>{catchUpRequests++;assert.ok(url.endsWith('/pub/context'));return new Response('{}',{status:code,headers:{'Retry-After':'120'}});};
+  }});
+  await assert.rejects(packet,new RegExp(String(code)));
+  // Four initial requests; the rejected fifth request does not reach the fixture logger.
+  assert.equal(calls.length,4);assert.equal(catchUpRequests,1);
+  if(code===429)assert.equal(reader.cooldowns.get('testnet'),f.now+120000);
+  if([403,451].includes(code))assert.equal(reader.store.get('restriction_testnet').blocked,true);
+ }
+});
