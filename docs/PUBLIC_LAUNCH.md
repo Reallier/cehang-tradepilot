@@ -1,4 +1,18 @@
-# Current release — atomic research archive merge
+# Current release — research workflow and sequential settlement
+
+- Released 2026-10-12 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `cde58161f9ad4cb5df02eee8914c31ffef09a5e9` is published on GitHub; later documentation commits do not change the image.
+- Image `localhost/tradepilot-demo:0786389e5af5`; config digest `b94fb82f221a2cd2088d70c2863b4404d05c6875c7b2a1ca0bc01da69346c104`; archive SHA-256 `0786389e5af581d6b95f9782a109d91d75dfc1f6c5832c915096bf03d4dfece7`.
+- JS `d3f1efcabd6710b6f3bbbb8c81eb78e477d07790b3095c0e2012269e4efb175a`; Worker `4cea77a7dfc8467022dd6970cff16a6f288602b40b5136c774e549c7aaee5293`. All 14 runtime asset files match the local build; 13 public business assets (including every JS chunk and license) match over certificate-verified HTTPS. Public HTML preserves the application prefix and receives the existing Cloudflare analytics/challenge injection, so full HTML bytes are not asserted equal.
+- Pod `tradepilot-64d75ff4ff-k72xv`: 1/1 Ready, zero restarts at acceptance. One observation was 2m CPU / 25 MiB memory, not a load benchmark. Manual rollout; rollback `releases/0786389e5af5/previous-demo.yaml` restores `59a1cf2c1f4f`. Existing CPU/memory limits and dependencies were retained.
+- 171/171 regression tests passed. Build, 193-file privacy scan, source/runtime Gitleaks and staged whitespace checks passed. Canonical source synchronization preserved its existing Git index.
+- Local browser acceptance exercised actual Worker replay; opt-in IndexedDB save, refresh/restore and deletion; per-market shock/depth controls; passive diagnostics; and creation of six unexecuted experiment drafts with zero eligible lifecycles. Public acceptance covers HTTP/API and exact resources; no new public interactive-browser or mobile acceptance is claimed.
+- Research v1/comparison v1 private archives replayed successfully: three experiments and one eligible saved-testnet lifecycle. Trade-review v2 retains its original verifier; v3 sequential reductions/full close are tested with synthetic long/short fixtures and invalid/missing/duplicate evidence. No new private account collection or transaction was performed.
+- Public health/session still disable both trading modes; submit/close/reconcile reject with 403, private account/monitor observations remain unavailable, source/config paths return 404, and diagnostics require a visitor session without probing upstream. Public guided evidence remains synthetic and independently replays.
+- See [RESEARCH_UPGRADE.md](RESEARCH_UPGRADE.md) for storage, Worker, ledger and scenario boundaries; [CURRENT_CAPABILITIES.md](CURRENT_CAPABILITIES.md) for the shared UI/document capability matrix. Actual new short/staged-exit samples and funding-cycle attribution remain pending, separately from implemented planning and synthetic regression.
+
+---
+
+# Previous release — atomic research archive merge
 
 - Released 2026-10-12 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `acf22c8a75d400d47dda9e92f22cd02ecbce9cc0` is published on GitHub; later acceptance documentation does not change the runtime.
 - Image `localhost/tradepilot-demo:59a1cf2c1f4f`; config digest `7bfe4f5f794a290cbd43fae853ab9006cf8b5484b24073139d74fd3abefab19b`; archive SHA-256 `59a1cf2c1f4f6084df7ee3c5c54077602f79d71e49a8d125390b9e6fdd4ffdce`.
