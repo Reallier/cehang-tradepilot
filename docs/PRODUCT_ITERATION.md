@@ -1,5 +1,9 @@
 # Product iteration — 2026-10-10
 
+## 2026-10-11 — feed and research continuity
+
+Market and order-book freshness now jointly determine the public UI status. The testnet website shares bounded WebSocket snapshots across market display, preview and comparison, with explicit provenance, connection limits and failure backoff. Research text drafts survive experiment switching and are included in exports; expired demo sessions can be recovered without refreshing away browser-local evidence. See FEED_CONTINUITY.md for limits and validation. Broader experiment analytics and runtime diagnostics remain pending.
+
 ## 2026-10-11 — page clear and budget-driven size analysis
 
 The account page's clear action now also resets the independent observation module and its polling state. Pending import/read completions cannot restore cleared page data. This does not delete exported files or stop the separately launched collector. Monitor copy now states five reads normally, at most six with bounded context catch-up.

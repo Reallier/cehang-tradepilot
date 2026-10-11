@@ -6,6 +6,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {DemoAccess,demoConfig,HttpError} from './demo-access.mjs';
 import {Perpl,NETWORKS} from './perpl.mjs';
+import {PublicBookFeed} from './public-book-feed.mjs';
 import {Store,hash} from './store.mjs';
 import {simulate,marketRow,bookRows} from './risk.mjs';
 import {acquireLock} from './lock.mjs';
@@ -26,6 +27,7 @@ process.env.TP_ENABLE_TESTNET_ORDERS='false';
 const config=demoConfig(),{port}=config,access=new DemoAccess(config);
 const protocolStore=new Store(path.resolve(process.env.TP_DATA_DIR??path.join(root,'data','public-demo')));
 const perpl=new Perpl(protocolStore);
+const publicBook=new PublicBookFeed(perpl);
 // Never expose a host account, even if environment variables later change.
 perpl.key=()=>null;
 const sessionSweep=setInterval(()=>access.sweep(),60000);sessionSweep.unref();
@@ -35,7 +37,7 @@ async function body(req){let text='';for await(const chunk of req){text+=chunk;i
 
 async function live(network,marketId){if(marketId!=null&&(!Number.isSafeInteger(marketId)||marketId<0))throw new Error('市场ID无效');const ctx=await perpl.context(network),markets=ctx.value.markets.map(m=>marketRow(m,ctx.value));const market=marketId==null?ctx.value.markets[0]:ctx.value.markets.find(m=>m.id===marketId);if(!market)throw new Error('所选或保存的市场已不存在，请重新选择');
   const end=Math.floor(Date.now()/3600000)*3600000,start=end-48*3600000;
-  const [book,candles]=await Promise.all([perpl.cached(network,`/v1/market-data/${market.id}/book`,5000),perpl.cached(network,`/v1/market-data/${market.id}/candles/3600/${start}-${end}`,120000)]);
+  const [book,candles]=await Promise.all([publicBook.read(network,market.id),perpl.cached(network,`/v1/market-data/${market.id}/candles/3600/${start}-${end}`,120000)]);
   const pd=10**market.config.price_decimals,inst=ctx.value.instances.find(i=>i.id===market.instance_id),tok=ctx.value.tokens.find(t=>t.id===inst.collateral_token_id);
   const rows=(candles.value.d??[]).filter(c=>c.t<end).map(c=>({time:new Date(c.t).toISOString(),open:c.o/pd,high:c.h/pd,low:c.l/pd,close:c.c/pd,volume:Number(c.v)/10**tok.decimals,tradeCount:c.n,asset:marketRow(market,ctx.value).asset}));
   if(rows.some(r=>![r.open,r.high,r.low,r.close,r.volume].every(Number.isFinite)||r.low>Math.min(r.open,r.close)||r.high<Math.max(r.open,r.close)))throw new Error('K线数据校验失败');
@@ -68,9 +70,9 @@ export const server=http.createServer({maxHeaderSize:8192,requestTimeout:15000,h
     if(p==='/api/local-monitor'&&req.method==='GET')return response(res,200,localMonitor(config,process.env.TP_LOCAL_MONITOR_FILE));
     if(p==='/api/local-observation'&&req.method==='GET'){const latest=localMonitor(config,process.env.TP_LOCAL_MONITOR_FILE);return response(res,200,latest.available&&latest.monitor.packet?{available:true,packet:latest.monitor.packet}:localObservation(config,process.env.TP_LOCAL_ACCOUNT_FILE));}
     if(p==='/api/wallet')return response(res,403,{error:'公共演示不连接钱包或读取私人账户'});
-    if(p==='/api/preview'&&req.method==='POST'){const d=await body(req),network=net(d.network),ctx=await perpl.context(network),market=ctx.value.markets.find(m=>m.id===Number(d.marketId));if(!market)throw new Error('市场不存在');const book=await perpl.cached(network,`/v1/market-data/${market.id}/book`,3000);
+    if(p==='/api/preview'&&req.method==='POST'){const d=await body(req),network=net(d.network),ctx=await perpl.context(network),market=ctx.value.markets.find(m=>m.id===Number(d.marketId));if(!market)throw new Error('市场不存在');const book=await publicBook.read(network,market.id);
       const result=simulate({market,context:ctx.value,book:book.value,input:d.input});const record=store.create('preview',{network,result,sources:[ctx.source,book.source],originalInput:d.input,inputHash:hash(d.input),snapshotHashes:{context:hash(ctx.value),book:hash(book.value)},context:ctx.value,book:book.value});return response(res,200,{...record,context:undefined,book:undefined});}
-    if(p==='/api/compare'&&req.method==='POST'){const d=await body(req),network=net(d.network);if(!Array.isArray(d.inputs)||d.inputs.length!==2)throw new Error('需提供恰好两个交易方案');const ctx=await perpl.context(network),market=ctx.value.markets.find(m=>m.id===Number(d.marketId));if(!market)throw new Error('市场不存在');const book=await perpl.cached(network,`/v1/market-data/${market.id}/book`,3000);
+    if(p==='/api/compare'&&req.method==='POST'){const d=await body(req),network=net(d.network);if(!Array.isArray(d.inputs)||d.inputs.length!==2)throw new Error('需提供恰好两个交易方案');const ctx=await perpl.context(network),market=ctx.value.markets.find(m=>m.id===Number(d.marketId));if(!market)throw new Error('市场不存在');const book=await publicBook.read(network,market.id);
       const record=store.create('comparison',{network,sources:[ctx.source,book.source],...comparePlans({market,context:ctx.value,book:book.value,inputs:d.inputs})});return response(res,200,{...record,context:undefined,book:undefined});}
     if(p==='/api/records'&&req.method==='GET')return response(res,200,{records:[...store.list('preview_').map(r=>({id:r.id,createdAt:r.createdAt,type:'simulation',asset:r.result.asset,network:r.network,notional:r.result.notional,status:r.result.riskPass?'passed':'blocked',netPnl:r.result.netPnl})),...store.list('comparison_').map(r=>({id:r.id,createdAt:r.createdAt,type:'comparison',asset:r.asset,network:r.network,notional:null,status:r.results.every(p=>p.riskPass)?'passed':'blocked'})),...store.list('intent_').map(r=>({id:r.id,createdAt:r.createdAt,type:'testnet_order',asset:r.result.asset,network:'testnet',notional:r.result.notional,status:r.status,reconciliation:r.reconciliation??null}))].sort((a,b)=>b.createdAt.localeCompare(a.createdAt))});
     if(p==='/api/evidence'&&req.method==='GET'){const id=url.searchParams.get('id');if(!/^(preview|intent|comparison)_[a-f0-9-]{36}$/.test(id??''))throw new Error('证据ID无效');return response(res,200,store.get(id));}

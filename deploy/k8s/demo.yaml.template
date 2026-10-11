@@ -41,7 +41,8 @@ spec:
             - {name: TP_ENABLE_TESTNET_ORDERS, value: 'false'}
             - {name: HTTPS_PROXY, value: '__OUTBOUND_PROXY__'}
             - {name: HTTP_PROXY, value: '__OUTBOUND_PROXY__'}
-            - {name: NO_PROXY, value: '127.0.0.1,localhost'}
+            - {name: NO_PROXY, value: '127.0.0.1,localhost,testnet.perpl.xyz'}
+            - {name: no_proxy, value: '127.0.0.1,localhost,testnet.perpl.xyz'}
           resources:
             requests: {cpu: 100m, memory: 128Mi}
             limits: {cpu: '1', memory: 512Mi}

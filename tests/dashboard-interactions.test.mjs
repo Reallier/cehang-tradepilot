@@ -21,8 +21,8 @@ const rootDir=path.resolve(import.meta.dirname,'..');
 await fs.mkdir(path.join(rootDir,'data'),{recursive:true});
 const temp=await fs.mkdtemp(path.join(rootDir,'data','ui-test-'));
 const outfile=path.join(temp,'components.mjs');
-await build({stdin:{contents:"export {ResearchWorkbench} from './frontend-source/dashboard/ResearchWorkbench.jsx';export {AccountWorkbench} from './frontend-source/dashboard/AccountWorkbench.jsx';export {PlanComparison} from './frontend-source/dashboard/PlanComparison.jsx';export {Workspace} from './frontend-source/ui.jsx';",resolveDir:rootDir},bundle:true,format:'esm',platform:'node',packages:'external',loader:{'.css':'empty'},outfile});
-const {ResearchWorkbench,AccountWorkbench,PlanComparison,Workspace}=await import(pathToFileURL(outfile));
+await build({stdin:{contents:"export {DashboardContent} from './frontend-source/dashboard/DashboardContent.jsx';export {ResearchWorkbench} from './frontend-source/dashboard/ResearchWorkbench.jsx';export {AccountWorkbench} from './frontend-source/dashboard/AccountWorkbench.jsx';export {PlanComparison} from './frontend-source/dashboard/PlanComparison.jsx';export {Workspace} from './frontend-source/ui.jsx';",resolveDir:rootDir},bundle:true,format:'esm',platform:'node',packages:'external',loader:{'.css':'empty'},outfile});
+const {DashboardContent,ResearchWorkbench,AccountWorkbench,PlanComparison,Workspace}=await import(pathToFileURL(outfile));
 const el=React.createElement,container=document.getElementById('root');
 const button=text=>[...container.querySelectorAll('button')].find(b=>b.textContent===text);
 async function click(text){assert.ok(button(text),`missing button ${text}`);await act(async()=>{button(text).click();});}
@@ -79,4 +79,33 @@ test('research workspace preserves experiments across tab changes, exports, rest
   let resolve;await file('恢复研究工作区',new Promise(r=>{resolve=r;}));await click('清空实验台');await act(async()=>resolve(JSON.stringify(downloads[0])));await settle();
   assert.ok(container.textContent.includes('实验记录 · 0/20'));assert.deepEqual(calls,['/api/guided-review']);
  }finally{await act(async()=>root.unmount());}
+});
+
+
+test('research text drafts survive switching and exports; only unexported work warns before leaving',async()=>{
+ const downloads=[],root=createRoot(container),props={active:true,api:async()=>guidedReview(),download:p=>downloads.push(p),onPrepare:()=>{}};
+ try{
+  await act(async()=>root.render(el(ResearchWorkbench,props)));await click('创建实验');await input('实验名称','保留的空头草稿');
+  await click('创建实验');await act(async()=>container.querySelector('.research-list button').click());
+  assert.equal(container.querySelector('[aria-label="实验名称"]').value,'保留的空头草稿');
+  const warn=new window.Event('beforeunload',{cancelable:true});window.dispatchEvent(warn);assert.equal(warn.defaultPrevented,true);
+  await click('导出研究工作区');assert.equal(downloads[0].workspace.experiments[0].title,'保留的空头草稿');assert.equal(replayResearch(downloads[0]).status,'reproduced');
+  const exported=new window.Event('beforeunload',{cancelable:true});window.dispatchEvent(exported);assert.equal(exported.defaultPrevented,false);
+ }finally{await act(async()=>root.unmount());}
+});
+
+test('expired demo session recovers in place without losing research drafts or remounting imported evidence',async()=>{
+ const originalFetch=globalThis.fetch,root=createRoot(container);let connects=0;
+ history.replaceState(null,'','/?tab=research');window.scrollTo=()=>{};
+ globalThis.fetch=async url=>{
+  assert.equal(url,'./api/session');connects++;
+  return {ok:true,status:200,headers:new Headers(),json:async()=>({token:`test-session-${connects}`,expiresAt:new Date(Date.now()+(connects===1?-1000:1800000)).toISOString()})};
+ };
+ try{
+  await act(async()=>root.render(el(Workspace,null,el(DashboardContent))));await waitFor(()=>button('创建实验'));
+  await click('创建实验');await input('实验名称','会话恢复后仍在');assert.ok(button('恢复演示会话'));
+  await click('恢复演示会话');await waitFor(()=>container.textContent.includes('新会话已建立'));
+  assert.equal(connects,2);assert.equal(container.querySelector('[aria-label="实验名称"]').value,'会话恢复后仍在');
+  assert.ok(container.textContent.includes('实验记录 · 1/20'));assert.ok(!button('恢复演示会话'));
+ }finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;history.replaceState(null,'','/');}
 });
