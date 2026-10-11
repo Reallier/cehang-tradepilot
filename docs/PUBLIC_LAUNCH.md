@@ -1,4 +1,17 @@
-# Current release — research workflow and sequential settlement
+# Current release — review repairs
+
+- Released 2026-10-12 at https://reallier.com/demos/tradepilot/ . Runtime source `68056c6f69ae0788453f1e7701034f6c32abb3c2` is published on GitHub; subsequent documentation commits do not change this image.
+- Image `localhost/tradepilot-demo:907b4c56ba56`; config digest `845b4805b671f6578a77e220c4e88c811163e5d2b966eb05e8ace17e8451c394`; archive SHA-256 `907b4c56ba5612c6b536d0ed3d049565f35ae21e55d06f8fe5f1d88d24e862a0`. Rollback `releases/907b4c56ba56/previous-demo.yaml` restores `0786389e5af5`.
+- All 15 files in the runtime dist directory match the packaged local files: 14 application assets and internal build metadata. The metadata endpoint returns 404. All 13 public non-HTML application assets match over certificate-verified HTTPS; HTML application prefix matches with existing Cloudflare analytics/challenge injection. JS `b4091f6374fe69d5b29618c99958fc49f4f246fbc3eb781e3b67adec7cdd842d`; Worker `a77a28d52a240c0c8e94258b346d741f03f08be2f17edf76071e277632d503aa`. Running diagnostics source also matches the repaired source.
+- Pod `tradepilot-5f57c96f8b-hbbbk` was 1/1 Ready with zero restarts; sampled 3m CPU and 25 MiB, not a load benchmark. Dependencies and resource limits are unchanged.
+- 178/178 tests passed, including fixed-plan mismatches for all four fields, retained valid settlement evidence, historical archive replay/restore/merge, plan preparation, account subview navigation/export and overlapping diagnostic completion orders. Build, 198-file privacy scan, source/runtime Gitleaks and staged whitespace checks passed. Canonical synchronization preserved its existing Git index.
+- New plans use structured constraints; evidence that fails those constraints is excluded from plan acceptance and comparison. Workspace/comparison v3 and test-plan v2 retain frozen replay support for prior versions. Old prose-only plans are explicitly marked as lacking declared structured constraints; historical evidence is not promoted to fixed-plan compliance.
+- Scenario edits survive account subview navigation, and concurrent diagnostics retain events and successful read timestamps. Frontend interaction verification for this repair is offline DOM regression; no fresh local/public browser or mobile visual acceptance is claimed.
+- Health/session keep both trading modes disabled; submit/close/reconcile return 403, private observations remain unavailable, protected paths return 404 and diagnostics remain passive/session-protected. Public synthetic guided evidence independently replays with opening, exit and baseline comparison verified. No new private collection, chain transaction or real-funds operation was performed.
+
+---
+
+# Previous release — research workflow and sequential settlement
 
 - Released 2026-10-12 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `cde58161f9ad4cb5df02eee8914c31ffef09a5e9` is published on GitHub; later documentation commits do not change the image.
 - Image `localhost/tradepilot-demo:0786389e5af5`; config digest `b94fb82f221a2cd2088d70c2863b4404d05c6875c7b2a1ca0bc01da69346c104`; archive SHA-256 `0786389e5af581d6b95f9782a109d91d75dfc1f6c5832c915096bf03d4dfece7`.
