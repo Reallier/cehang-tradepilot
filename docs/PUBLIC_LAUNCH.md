@@ -1,4 +1,18 @@
-# Current release — bounded experiment receipt collection
+# Current release — feed quality and research continuity
+
+- Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `8bd9ab24cc925ee58ce61c3f6ff121f9c545ed89` is published on GitHub. This later documentation commit does not change the runtime.
+- Image `localhost/tradepilot-demo:4de8150d3dc3`; config digest `c3697b217b9003ea679f50b74781b7f4d849b1f1c0d3e0c07337b86146a121e8`. Archive SHA-256 `4de8150d3dc32bca57c04770aa83f8f72747c813c58a69e940f6aa2995975102`.
+- JS `d4b202d66aedb4823e2b7d02b163b3ad2e3ceb071f3736f437744191d9ba0495`; CSS `a12137e592c438e690b04b806c95d089c27b65bc607b24d96dae1a6fb929d8d9`. Local build, running container and certificate-verified public HTTPS resources match.
+- Pod `tradepilot-758859dfb4-s4gdw`: 1/1 Ready, zero restarts at acceptance. Manual K3s rollout; rollback `releases/4de8150d3dc3/previous-demo.yaml` restores `7525444ed3be` and the prior routing configuration. Protocol-state PVC was preserved.
+- Shared testnet WebSocket snapshots now serve market display, preview and comparison; separate price/book freshness controls the overall data status. Both proxy exclusion variables retain their previous entries and additionally include only `testnet.perpl.xyz`; mainnet routing is unchanged.
+- Public HTTPS acceptance returned chain 10143, WebSocket book provenance and approximately 7.5-second-old price/book samples. A short-direction risk preview passed its model gates; this was a simulation, not an order or proof of trading performance. A complete public preview evidence packet independently reproduced all ten checked model fields through the CLI.
+- 145 tests passed, production build and privacy scan passed; Gitleaks source and runtime scans found no leaks. Offline DOM tests cover session renewal retaining research drafts, stale-request rejection, export and per-experiment draft retention.
+- Local in-app browser verified switching between two experiments preserves an unsaved review note and displayed the updated research workspace. Public visual acceptance was not repeated under the existing Computer Use restriction; public acceptance here is HTTP/API and exact asset verification.
+- Public health/session keep both order modes disabled; private observation/monitor endpoints remain unavailable. No new account collection or trade was performed. See FEED_CONTINUITY.md for cache bounds, renewal behavior and remaining work.
+
+---
+
+# Previous release — bounded experiment receipt collection
 
 - Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `4dd33631f371a1f719f138fbe805d5cbdffbf020` is published on GitHub; later acceptance documentation does not change the runtime.
 - Image `localhost/tradepilot-demo:7525444ed3be`; config digest `a33c76df38a63600af4b5dd1b552102471c87a92e3a35c3e5aa9a8d33eeb5539`. Archive SHA-256 `7525444ed3be3cc3f1492ffc7a2c028c4b2bcfc9d080ab0fa76b7793526689aa`.
