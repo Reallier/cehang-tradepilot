@@ -49,3 +49,16 @@ The readiness-only command validates local configuration and target shape; it do
 ### Acceptance — 2026-10-11
 
 130 tests pass. A single authorized read-only collection of an existing private testnet long lifecycle returned two selected receipts, complete history pagination, a reconciled opening and full exit, and a reproduced pre-trade baseline match. All-history receipt coverage correctly remained false because another lifecycle was outside the target. The restored research archive counted one saved-testnet lifecycle. No new trade or continuous collection was performed; actual short acceptance remains pending.
+
+
+## Manual short baseline preparation
+
+The local baseline tool now accepts `--direction long|short` (default remains long). Long uses the best ask and a -5% scenario; short uses the best bid and a +5% scenario. Both preserve the requested integer raw quantity, require Monad Testnet, cap requested notional at 25 collateral units, leverage at 1–5×, and use a 1% slippage ceiling. Neither signs or submits orders.
+
+```sh
+node --use-env-proxy scripts/read-baseline.mjs --config data/account-readonly/config.json --market MARKET_ID --raw-size RAW_QUANTITY --leverage 2 --direction short
+```
+
+Use the actual market ID and precision; do not guess them. Prepare the baseline only once the official page and account checks are ready: it expires two minutes after saving. A short baseline is not a completed short test. Direction/book-side and invalid-input tests bring source regression coverage to 132 tests.
+
+The 2026-10-11 short acceptance attempt stopped before baseline creation or any new order: after refresh the official testnet frontend displayed a geographic-unavailability notice. Its cause and HTTP status were not established. A separate read-only account observation returned zero positions but `HEAD_NOT_COVERED` for wallet and positions, so account readiness was not accepted. Previously completed historical lifecycle checks remain historical evidence.
