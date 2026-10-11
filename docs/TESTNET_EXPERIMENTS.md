@@ -62,3 +62,17 @@ node --use-env-proxy scripts/read-baseline.mjs --config data/account-readonly/co
 Use the actual market ID and precision; do not guess them. Prepare the baseline only once the official page and account checks are ready: it expires two minutes after saving. A short baseline is not a completed short test. Direction/book-side and invalid-input tests bring source regression coverage to 132 tests.
 
 The 2026-10-11 short acceptance attempt stopped before baseline creation or any new order: after refresh the official testnet frontend displayed a geographic-unavailability notice. Its cause and HTTP status were not established. A separate read-only account observation returned zero positions but `HEAD_NOT_COVERED` for wallet and positions, so account readiness was not accepted. Previously completed historical lifecycle checks remain historical evidence.
+
+### Bounded WebSocket snapshot preparation
+
+The local baseline CLI also accepts `--book-source websocket`; the default remains `rest`. Select this explicitly when diagnosing stale REST snapshots. It opens one public connection to the fixed official testnet market-data endpoint, subscribes to one market, and closes after a subscription-confirmed complete snapshot. The adapter has a 12-second deadline, 8-frame / 4-MiB input budget and no credentials, automatic reconnect, automatic source fallback or order frames. It does not apply incremental updates. A stale snapshot fails immediately; repeated requests are not used to wait for a pass.
+
+```sh
+node --use-env-proxy scripts/read-baseline.mjs --config data/account-readonly/config.json --market MARKET_ID --raw-size RAW_QUANTITY --leverage 2 --direction short --book-source websocket
+```
+
+Use the already approved network route. Existing eligibility, protocol restriction, cooldown and request-budget checks apply; subscription 429 pauses access and public 403/451 records the existing restriction state. The snapshot must match the acknowledged stream ID, carry consistent block/sequence metadata, have valid sorted uncrossed depth, and pass the unchanged 45-second freshness and risk checks. Exported provenance identifies the WebSocket URL, market, stream, receive time and raw-frame hash. These local records are reproducible evidence, not cryptographic authentication of the upstream service or proof of a trade.
+
+**2026-10-11 follow-up:** after correcting the browser route, the official testnet page became accessible and a later bounded account observation completed with empty positions. REST book responses returned HTTP 200 but lagged context by 1,470 blocks in one diagnostic read; a separate 20-second public WebSocket observation returned a fresh snapshot, a book update and advancing heartbeats. The new CLI then saved a short baseline from a roughly 9-second-old snapshot, and the independent replay command reproduced it. This proves snapshot acquisition and pre-trade preparation only: no new order was submitted, short opening/full-exit acceptance remains pending, and the saved baseline expires after two minutes. Public demo data fetching remains unchanged by this local CLI addition.
+
+Protocol references: [REST snapshot timestamps](https://github.com/PerplFoundation/api-docs/blob/main/rest-endpoints.md#get-apiv1market-datamarket_idbook), [public WebSocket subscriptions](https://github.com/PerplFoundation/api-docs/blob/main/websocket.md#market-data-websocket).
