@@ -1,3 +1,7 @@
+## Cross-experiment comparison — 2026-10-11
+
+The research workspace now groups reconciled lifecycles and compares execution deviation, fees, funding, realized net PnL and saved stress buffers. Duplicate/conflicting evidence and incomplete experiments are explicit. Export is independently replayable; see [RESEARCH_COMPARISON.md](RESEARCH_COMPARISON.md). This is descriptive analysis, not strategy performance or causal attribution.
+
 # Product iteration — 2026-10-10
 
 ## 2026-10-11 — feed and research continuity

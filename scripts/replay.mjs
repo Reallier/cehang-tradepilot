@@ -1,3 +1,4 @@
+import {RESEARCH_COMPARISON_SCHEMA,replayResearchComparison} from '../frontend-source/research-comparison.mjs';
 import {RESEARCH_SCHEMA,replayResearch} from '../frontend-source/research-workspace.mjs';
 import {PORTFOLIO_SCHEMA,replayPortfolio} from '../server/portfolio-risk.mjs';
 import fs from 'node:fs';
@@ -17,6 +18,7 @@ import {TRADE_REVIEW_SCHEMA,replayTradeReview} from '../server/settlement-audit.
 import {BASELINE_SCHEMA,verifyBaseline} from '../server/pretrade-baseline.mjs';
 const file=process.argv[2];if(!file)throw new Error('Usage: node scripts/replay.mjs /absolute/preview_record.json');
 const record=JSON.parse(fs.readFileSync(file,'utf8'));
+if(record.schema===RESEARCH_COMPARISON_SCHEMA){console.log(JSON.stringify(replayResearchComparison(record)));process.exit(0);}
 if(record.schema===SIZING_SCHEMA){console.log(JSON.stringify(replaySizing(record)));process.exit(0);}
 if(record.schema===PORTFOLIO_SCHEMA){console.log(JSON.stringify(replayPortfolio(record)));process.exit(0);}
 if(record.schema==='plan-decision-review-v1'){console.log(JSON.stringify(replayPlanDecision(record)));process.exit(0);}

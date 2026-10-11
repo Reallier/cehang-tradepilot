@@ -1,3 +1,4 @@
+import {replayResearchComparison} from '../frontend-source/research-comparison.mjs';
 import test,{after} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -108,4 +109,15 @@ test('expired demo session recovers in place without losing research drafts or r
   assert.equal(connects,2);assert.equal(container.querySelector('[aria-label="实验名称"]').value,'会话恢复后仍在');
   assert.ok(container.textContent.includes('实验记录 · 1/20'));assert.ok(!button('恢复演示会话'));
  }finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;history.replaceState(null,'','/');}
+});
+
+test('cross-experiment panel excludes drafts, deduplicates examples and exports locally replayable comparisons',async()=>{
+ const calls=[],downloads=[],root=createRoot(container),props={active:true,api:async route=>{calls.push(route);return guidedReview();},download:p=>downloads.push(p),onPrepare:()=>{}};
+ try{
+  await act(async()=>root.render(el(ResearchWorkbench,props)));await click('创建实验');await click('添加合成示例');await click('添加合成示例');
+  const panel=container.querySelector('[aria-label="跨实验对比"]');assert.ok(panel.textContent.includes('纳入 1 个去重生命周期'));assert.ok(panel.textContent.includes('排除 2 轮实验'));assert.ok(panel.textContent.includes('仅 1 笔样本'));assert.ok(panel.textContent.includes('重复成交'));
+  await input('实验名称','对比导出的草稿名称');await click('导出跨实验对比');assert.equal(replayResearchComparison(downloads[0]).included,1);assert.equal(downloads[0].workspace.experiments[2].title,'对比导出的草稿名称');
+  const n=container.querySelector('[aria-label="恢复研究工作区"]');Object.defineProperty(n,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(downloads[0])}]});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));await settle();assert.ok(container.textContent.includes('实验记录 · 3/20'));
+  assert.deepEqual(calls,['/api/guided-review','/api/guided-review']);
+ }finally{await act(async()=>root.unmount());}
 });
