@@ -1,4 +1,18 @@
-# Current release — continuous testnet acceptance
+# Current release — atomic research archive merge
+
+- Released 2026-10-12 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `acf22c8a75d400d47dda9e92f22cd02ecbce9cc0` is published on GitHub; later acceptance documentation does not change the runtime.
+- Image `localhost/tradepilot-demo:59a1cf2c1f4f`; config digest `7bfe4f5f794a290cbd43fae853ab9006cf8b5484b24073139d74fd3abefab19b`; archive SHA-256 `59a1cf2c1f4f6084df7ee3c5c54077602f79d71e49a8d125390b9e6fdd4ffdce`.
+- JS `b225a4397de44181a15e72a6a63dbe36bbe0077fe4a69363c5ea4a589af99c13`; CSS `695dc054a081303787084fe4fa877b951e95bec5be940c21091363660ede5600`. Local build, running container and certificate-verified public HTTPS asset bytes match.
+- Pod `tradepilot-6f5db4c6cc-qv5vq`: 1/1 Ready, zero restarts at acceptance. Manual K3s rollout; rollback `releases/59a1cf2c1f4f/previous-demo.yaml` restores `11404a161019`.
+- Full suite: 162 tests passed. Final summary-reset adjustment: all eight offline DOM interaction tests passed again. Build, 171-file tracked privacy scan and source/runtime Gitleaks scans passed.
+- Research and comparison archives can now be merged locally in one batch. Existing drafts and selection remain; identical IDs/content are skipped, alternate versions reject the whole batch, and corrupted later files cannot partially write earlier files. Clear cancels pending reads. Inputs and final export retain explicit size/count limits.
+- Private archived testnet research and comparison files were replayed together locally: three experiments retained, three identical records skipped, one eligible saved-testnet lifecycle. No private evidence or identifiers were deployed/published. No new account collection or transaction was performed.
+- Public health/session retain both trading modes disabled, private observation/monitor endpoints unavailable, and the guided case explicitly synthetic. Acceptance is offline DOM interactions plus public HTTP/API and exact assets; no fresh browser visual acceptance is claimed.
+- See TESTNET_EXPERIMENTS.md for merge versus replacement behavior and conflict resolution.
+
+---
+
+# Previous release — continuous testnet acceptance
 
 - Released 2026-10-12 at https://reallier.com/demos/tradepilot/?tab=research . Runtime source `2f83ec98ac142da8eec03f32939d5982a5bafbb0` is published on GitHub.
 - Image `localhost/tradepilot-demo:11404a161019`; archive SHA-256 `11404a1610191789981fa78d5346280d275203bff401eed7c7c05b660133512f`.
