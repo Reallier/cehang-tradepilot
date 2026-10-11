@@ -1,4 +1,16 @@
-# Current release — testnet research workspace
+# Current release — bounded experiment receipt collection
+
+- Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `4dd33631f371a1f719f138fbe805d5cbdffbf020` is published on GitHub; later acceptance documentation does not change the runtime.
+- Image `localhost/tradepilot-demo:7525444ed3be`; config digest `a33c76df38a63600af4b5dd1b552102471c87a92e3a35c3e5aa9a8d33eeb5539`. Archive SHA-256 `7525444ed3be3cc3f1492ffc7a2c028c4b2bcfc9d080ab0fa76b7793526689aa`.
+- JS `18bc18095f08064a23d31c25a0c75ba0ac81bcd7700f37508ece760246b3dc45`; CSS `9b611f9599ccf40435356d23f1f07b31edacfc1f12d2d5f15dc00a475c6446bf`. Candidate, running container and verified public HTTPS resources match.
+- Pod `tradepilot-764c57cb5c-pgdgx`: 1/1 Ready, zero restarts at acceptance. Manual K3s rollout; rollback `releases/7525444ed3be/previous-demo.yaml` restores `29fbab380ce1`.
+- 130 tests pass; build, privacy and Gitleaks source/history checks pass. Source was checked against configured private credential/wallet strings with no matches. Public health/session keep both order modes disabled; private observation and monitor routes remain unavailable.
+- One authorized local read-only collection retrieved exactly two targeted transaction receipts for an existing testnet lifecycle. Opening, full exit and prior baseline association reconciled; all observed history stayed intact and non-target receipt gaps stayed explicit. No new trade was performed. See TESTNET_EXPERIMENTS.md.
+- The selected private evidence and research archive remain local. Public UI only exports a selection file; private collection runs through the local CLI. Browser visual acceptance was not repeated; actual short lifecycle testing remains pending.
+
+---
+
+# Previous release — testnet research workspace
 
 - Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `0203eaa7e611ea2ea3156bdb9eb38d0ad3b6ec82` is published on GitHub; this acceptance documentation is a later commit.
 - Image `localhost/tradepilot-demo:29fbab380ce1`; config digest `642f11cc5ec8394b9558c9d707e968aa46ad2f7d335de06c6b7f02086540edf3`.
