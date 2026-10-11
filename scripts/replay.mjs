@@ -1,3 +1,4 @@
+import {RESEARCH_SCHEMA,replayResearch} from '../frontend-source/research-workspace.mjs';
 import {PORTFOLIO_SCHEMA,replayPortfolio} from '../server/portfolio-risk.mjs';
 import fs from 'node:fs';
 import {SIZING_SCHEMA,replaySizing} from '../server/budget-sizing.mjs';
@@ -20,6 +21,7 @@ if(record.schema===SIZING_SCHEMA){console.log(JSON.stringify(replaySizing(record
 if(record.schema===PORTFOLIO_SCHEMA){console.log(JSON.stringify(replayPortfolio(record)));process.exit(0);}
 if(record.schema==='plan-decision-review-v1'){console.log(JSON.stringify(replayPlanDecision(record)));process.exit(0);}
 if(record.schema==='account-trade-workspace-v1'){console.log(JSON.stringify(replayWorkspaceReview(record)));process.exit(0);}
+if(record.schema===RESEARCH_SCHEMA){console.log(JSON.stringify(replayResearch(record)));process.exit(0);}
 if(record.schema===TRADE_REVIEW_SCHEMA){console.log(JSON.stringify(replayTradeReview(record)));process.exit(0);}
 if(record.schema===BASELINE_SCHEMA){verifyBaseline(record);console.log(JSON.stringify({status:'reproduced',classification:'pretrade_baseline'}));process.exit(0);}
 if(record.schema===HISTORY_AUDIT_SCHEMA){console.log(JSON.stringify(replayHistoryAudit(record),null,2));process.exit(0);}

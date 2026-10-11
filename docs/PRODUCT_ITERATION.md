@@ -4,7 +4,11 @@
 
 The account page's clear action now also resets the independent observation module and its polling state. Pending import/read completions cannot restore cleared page data. This does not delete exported files or stop the separately launched collector. Monitor copy now states five reads normally, at most six with bounded context catch-up.
 
-Plan comparison now offers bounded, snapshot-local size analysis under the user's margin/scenario-loss budgets, with endpoint transfer and independently replayable evidence. See BUDGET_SIZING.md. The next stages remain a multi-baseline local research workspace, a data-quality timeline and broader portfolio/lifecycle support; those are not claimed as delivered by this revision.
+Plan comparison now offers bounded, snapshot-local size analysis under the user's margin/scenario-loss budgets, with endpoint transfer and independently replayable evidence. See BUDGET_SIZING.md. The testnet research workspace is now implemented (see TESTNET_EXPERIMENTS.md). A data-quality timeline and broader portfolio/lifecycle support remain pending.
+
+## 2026-10-11 — testnet research workspace
+
+Added a local multi-experiment workspace, independently replayable archive, per-experiment baseline/trade association, deduplicated coverage and explicit unsupported lifecycle states. The next actual test is a user-operated short opening/full exit with a fresh baseline. This change itself performs no chain transactions.
 
 ## Shipped scope: trade-level review
 

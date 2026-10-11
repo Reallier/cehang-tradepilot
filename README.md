@@ -14,7 +14,7 @@ The demo is deployed over HTTPS; see docs/PUBLIC_LAUNCH.md for its verified rele
 
 Start with the [judge walkthrough](docs/JUDGE_GUIDE.md) and [existing-foundation / competition-work disclosure](docs/BUILD_DISCLOSURE.md).
 
-Current verification: **120 tests pass in the current source and at the deployed runtime release**. The local monitor now supports one bounded context catch-up without weakening freshness/head checks; its three-round follow-up used five requests per round and did not naturally trigger catch-up. The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. Both proxy-bypass variable cases were set; this run had no HTTP 451. Historical testnet lifecycle evidence and synthetic examples remain distinct. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
+Current verification: **126 tests pass in this source revision**. The local monitor now supports one bounded context catch-up without weakening freshness/head checks; its three-round follow-up used five requests per round and did not naturally trigger catch-up. The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. Both proxy-bypass variable cases were set; this run had no HTTP 451. Historical testnet lifecycle evidence and synthetic examples remain distinct. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
 
 ## Implemented scope
 
@@ -87,3 +87,7 @@ The repository is publicly readable; no open-source license has yet been granted
 ## Public demonstration
 
 Open [CeHang TradePilot](https://reallier.com/demos/tradepilot/). Trading is disabled; visitor records are temporary. See [public launch evidence and limits](docs/PUBLIC_LAUNCH.md).
+
+## Testnet experiment workspace
+
+Open **测试网实验台** to track independent experiments, associate baselines and saved trade evidence, inspect deduplicated coverage, and export/restore a replayable archive. Files stay in browser memory. See [workflow and acceptance boundaries](docs/TESTNET_EXPERIMENTS.md). This feature adds no order submission or background upstream requests.

@@ -8,6 +8,8 @@ import {JSDOM} from 'jsdom';
 import {fixture} from './risk-fixture.mjs';
 import {comparePlans} from '../server/comparison.mjs';
 import {monitorExample} from '../server/monitor-example.mjs';
+import {guidedReview} from '../server/guided-review.mjs';
+import {replayResearch} from '../frontend-source/research-workspace.mjs';
 import {replaySizing} from '../server/budget-sizing.mjs';
 
 // Offline DOM emulation, not a browser/visual or network acceptance test.
@@ -19,8 +21,8 @@ const rootDir=path.resolve(import.meta.dirname,'..');
 await fs.mkdir(path.join(rootDir,'data'),{recursive:true});
 const temp=await fs.mkdtemp(path.join(rootDir,'data','ui-test-'));
 const outfile=path.join(temp,'components.mjs');
-await build({stdin:{contents:"export {AccountWorkbench} from './frontend-source/dashboard/AccountWorkbench.jsx';export {PlanComparison} from './frontend-source/dashboard/PlanComparison.jsx';export {Workspace} from './frontend-source/ui.jsx';",resolveDir:rootDir},bundle:true,format:'esm',platform:'node',packages:'external',loader:{'.css':'empty'},outfile});
-const {AccountWorkbench,PlanComparison,Workspace}=await import(pathToFileURL(outfile));
+await build({stdin:{contents:"export {ResearchWorkbench} from './frontend-source/dashboard/ResearchWorkbench.jsx';export {AccountWorkbench} from './frontend-source/dashboard/AccountWorkbench.jsx';export {PlanComparison} from './frontend-source/dashboard/PlanComparison.jsx';export {Workspace} from './frontend-source/ui.jsx';",resolveDir:rootDir},bundle:true,format:'esm',platform:'node',packages:'external',loader:{'.css':'empty'},outfile});
+const {ResearchWorkbench,AccountWorkbench,PlanComparison,Workspace}=await import(pathToFileURL(outfile));
 const el=React.createElement,container=document.getElementById('root');
 const button=text=>[...container.querySelectorAll('button')].find(b=>b.textContent===text);
 async function click(text){assert.ok(button(text),`missing button ${text}`);await act(async()=>{button(text).click();});}
@@ -60,5 +62,21 @@ test('comparison searches cached evidence locally; changed budgets invalidate re
   await input('保证金预算上限','10');assert.ok(!container.textContent.includes('模型内目标金额区间'));assert.ok(!button('带回区间上界'));
   await click('计算预算内规模');await click('带回区间上界');assert.equal(applied.length,1);assert.ok(applied[0][0].notional>=20&&applied[0][0].notional<20.11);
   assert.deepEqual(calls,['/api/compare',`/api/evidence?id=${comparison.id}`]);
+ }finally{await act(async()=>root.unmount());}
+});
+
+
+test('research workspace preserves experiments across tab changes, exports, restores and discards late imports after clear',async()=>{
+ const calls=[],downloads=[],root=createRoot(container),props={active:true,api:async route=>{calls.push(route);return guidedReview();},download:p=>downloads.push(p),onPrepare:()=>{}};
+ async function file(label,value){const n=container.querySelector(`[aria-label="${label}"]`);Object.defineProperty(n,'files',{configurable:true,value:[{size:100,text:()=>value}]});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));}
+ try{
+  await act(async()=>root.render(el(ResearchWorkbench,props)));await click('创建实验');await click('添加合成示例');
+  await click('导出研究工作区');assert.equal(replayResearch(downloads[0]).experiments,2);assert.equal(downloads[0].report.syntheticVerified,1);
+  await act(async()=>root.render(el(ResearchWorkbench,{...props,active:false})));await act(async()=>root.render(el(ResearchWorkbench,props)));
+  assert.ok(container.textContent.includes('实验记录 · 2/20'));
+  await click('清空实验台');assert.ok(container.textContent.includes('实验记录 · 0/20'));
+  await file('恢复研究工作区',Promise.resolve(JSON.stringify(downloads[0])));await waitFor(()=>container.textContent.includes('实验记录 · 2/20'));
+  let resolve;await file('恢复研究工作区',new Promise(r=>{resolve=r;}));await click('清空实验台');await act(async()=>resolve(JSON.stringify(downloads[0])));await settle();
+  assert.ok(container.textContent.includes('实验记录 · 0/20'));assert.deepEqual(calls,['/api/guided-review']);
  }finally{await act(async()=>root.unmount());}
 });
