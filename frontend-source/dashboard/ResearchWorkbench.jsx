@@ -1,3 +1,4 @@
+import {receiptTargetForJourney} from '../../server/receipt-selection.mjs';
 import React,{useMemo,useRef,useState} from 'react';
 import {EXPERIMENT_TYPES,emptyResearch,newExperiment,researchReport,researchPacket,parseResearchFile,attachResearchEvidence,MAX_RESEARCH_BYTES} from '../research-workspace.mjs';
 import {TradeReview} from './TradeReview.jsx';
@@ -25,6 +26,6 @@ export function ResearchWorkbench({active,api,download,currentBaseline,onPrepare
  {row.duplicate&&<p className="tp-alert">此成交被多个实验引用，覆盖数量只计一次。</p>}
  {['short_full','long_full'].includes(experiment.kind)&&<button disabled={busy} onClick={()=>onPrepare(experiment.kind)}>准备{experiment.kind==='short_full'?'空头':'多头'}预演（1× / 不利5%情景）</button>}
  <ol className="tp-checklist"><li>使用 Monad Testnet（10143）的测试账户和测试代币。</li><li>在交易前运行新预演并保存基线；按基线有效期完成开仓，过期后重新预演。</li><li>在官方测试网页面自行确认交易；完成全量退出后，用只读工具采集历史和回执。</li><li>导入材料并选择对应开仓，检查预估偏差和结算。一次只验证一个生命周期。</li></ol>
- <p className="tp-note">当前采集最多覆盖4笔交易回执。较长历史请检查缺失证据；不要把覆盖不全当作通过。分批退出和跨资金费周期需要进一步扩展核验器。</p>
+ <p className="tp-note">每次最多采集4笔回执。已选择开仓时可导出采集目标，在本机只读工具使用 --target 文件路径，优先获取本次开平仓回执；其余历史仍完整保留用于核验。没有所需历史行或目标超过上限时停止，不能判定通过。</p>{row.journey&&<button disabled={busy} onClick={()=>action(()=>download(receiptTargetForJourney(row.journey),'tradepilot-receipt-target.json'))}>导出本实验采集目标</button>}{experiment.trade?.report.opening.targetReceiptCoverage&&<p className="tp-note">定向采集：{experiment.trade.report.opening.targetReceiptCoverage.receiptsAvailable?'目标回执已返回':'目标回执缺失'} · {experiment.trade.report.opening.targetReceiptCoverage.historyComplete?'历史分页完整':'历史仍有截断'}。回执返回不等于成交核验通过；未选中的其他交易可能显示缺失回执。</p>}
  {experiment.trade&&<TradeReview trade={experiment.trade} baseline={experiment.baseline} download={download}/>}</> }</section></div></section>;
 }

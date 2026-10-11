@@ -71,7 +71,7 @@ test('research workspace preserves experiments across tab changes, exports, rest
  async function file(label,value){const n=container.querySelector(`[aria-label="${label}"]`);Object.defineProperty(n,'files',{configurable:true,value:[{size:100,text:()=>value}]});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));}
  try{
   await act(async()=>root.render(el(ResearchWorkbench,props)));await click('创建实验');await click('添加合成示例');
-  await click('导出研究工作区');assert.equal(replayResearch(downloads[0]).experiments,2);assert.equal(downloads[0].report.syntheticVerified,1);
+  await click('导出研究工作区');assert.equal(replayResearch(downloads[0]).experiments,2);assert.equal(downloads[0].report.syntheticVerified,1);await click('导出本实验采集目标');assert.deepEqual(downloads[1],{schema:'testnet-receipt-target-v1',chainId:10143,accountId:1,marketId:1,openingOrderId:9});
   await act(async()=>root.render(el(ResearchWorkbench,{...props,active:false})));await act(async()=>root.render(el(ResearchWorkbench,props)));
   assert.ok(container.textContent.includes('实验记录 · 2/20'));
   await click('清空实验台');assert.ok(container.textContent.includes('实验记录 · 0/20'));

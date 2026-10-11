@@ -1,3 +1,4 @@
+import {verifyReceiptTarget,selectExperimentReceipts} from './receipt-selection.mjs';
 import {Perpl} from './perpl.mjs';
 import {AccountReader,collectAccount} from './account-readonly.mjs';
 import {hash} from './store.mjs';
@@ -28,6 +29,7 @@ export class HistoryReader extends AccountReader {
 // Hard bounded: five account reads, eight history pages, eight transaction reads,
 // and one final head. No orders, retry loop or background polling.
 export async function collectHistory(reader,options) {
+  if(options.receiptTarget)verifyReceiptTarget(options.receiptTarget);
   const account=await collectAccount(reader,options);
   if(account.status==='not_ready')return account;
   const histories={};
@@ -47,13 +49,15 @@ export async function collectHistory(reader,options) {
   const orders=histories['order-history'].pages.flatMap(p=>p.value.d);
   const filled=orders.filter(o=>accounts.has(o.acc)&&[1,2,3,4].includes(o.t)&&o.fs>0);
   const hashes=[...new Set(filled.map(o=>normalizeTxHash(o.at?.txid)).filter(Boolean))];
+  const receiptSelection=options.receiptTarget?selectExperimentReceipts({account,histories},options.receiptTarget):null;
+  const selectedHashes=receiptSelection?.hashes??hashes.slice(0,4);
   const chain=[];
-  for(const txHash of hashes.slice(0,4)){
+  for(const txHash of selectedHashes){
     const receipt=await reader.rpc('testnet','eth_getTransactionReceipt',[txHash]);
     const transaction=await reader.rpc('testnet','eth_getTransactionByHash',[txHash]);
     chain.push({txHash,receipt,transaction});
   }
   const head=Number(BigInt(await reader.rpc('testnet','eth_blockNumber',[])));
-  const evidence={account,histories,chain,head,collectedAt:new Date(reader.now()).toISOString(),receiptCoverageComplete:hashes.length<=4&&filled.every(o=>normalizeTxHash(o.at?.txid))};
+  const evidence={account,histories,chain,head,collectedAt:new Date(reader.now()).toISOString(),receiptCoverageComplete:filled.every(o=>normalizeTxHash(o.at?.txid))&&hashes.every(h=>selectedHashes.includes(h)),...(receiptSelection?{receiptSelection}:{})};
   return {schema:'trade-history-observation-v1',classification:'private_testnet_history',evidence,evidenceHash:hash(evidence)};
 }

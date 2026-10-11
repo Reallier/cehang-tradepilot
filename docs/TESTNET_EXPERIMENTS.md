@@ -26,8 +26,26 @@ A passing row requires a supported direction, a reproduced testnet baseline, a v
 
 The same chain/wallet/account/market/opening transaction referenced by multiple experiments counts once within its source classification. Synthetic examples cannot contribute to the saved-testnet coverage count. Saved-testnet classification itself is a file claim, not independent source authentication. Repeated observations of the same trade are not extra trials and trade counts are not evidence of profitability.
 
-The bounded history collector still reads at most four unique transaction receipts per collection (at most 22 upstream reads). A longer account history can therefore have missing receipt coverage. The experiment page exposes each trade's reconciliation state; it does not raise collection limits or bypass restriction/cooldown rules. Targeted receipt collection is a next improvement before broad repeated trading.
+The bounded history collector still reads at most four unique transaction receipts per collection (at most 22 upstream reads). A longer account history can therefore have missing receipt coverage. The experiment page exposes each trade's reconciliation state; it does not raise collection limits or bypass restriction/cooldown rules. Targeted collection is now supported: select the experiment opening, export its receipt target, then pass the file with `--target` to the local history reader. It resolves all filled order transactions associated with the same account/market/position in the already fetched history. Missing or ambiguous opening/order rows and more than four distinct target hashes stop before any transaction RPC. Unrelated history is retained for lifecycle checks; its missing receipts remain explicit.
 
 ## Validation
 
 Unit and offline React DOM tests cover synthetic/real-file separation, duplicate counting, unsupported experiments, direction mismatches, null-baseline replacement, tampered reports, bounded archive parsing, tab retention, export/restore and late-import cancellation after clear. DOM tests do not establish browser rendering or new chain transactions.
+
+
+## Targeted read-only collection
+
+```sh
+node --use-env-proxy --env-file=data/account-readonly/credentials.env scripts/read-history.mjs --config data/account-readonly/config.json --target /absolute/tradepilot-receipt-target.json
+# Only after local readiness passes, explicitly collect once:
+node --use-env-proxy --env-file=data/account-readonly/credentials.env scripts/read-history.mjs --config data/account-readonly/config.json --target /absolute/tradepilot-receipt-target.json --collect
+```
+
+The readiness-only command validates local configuration and target shape; it does not query or prove the target exists. Use the already approved network configuration. Existing restrictions, cooldowns and authentication checks apply unchanged. No automatic retry or new pagination is introduced.
+
+`receiptCoverageComplete` retains its all-observed-orders meaning. Targeted observations additionally carry `receiptSelection`, and replay derives it again from the preserved history. `targetReceiptCoverage.receiptsAvailable` means the selected receipt/transaction responses are non-null; only full trade checks can establish reconciliation. `historyComplete` remains separate, and truncated history still blocks supported full-exit settlement checks. There is no API endpoint for private collection in the public application.
+
+
+### Acceptance — 2026-10-11
+
+130 tests pass. A single authorized read-only collection of an existing private testnet long lifecycle returned two selected receipts, complete history pagination, a reconciled opening and full exit, and a reproduced pre-trade baseline match. All-history receipt coverage correctly remained false because another lifecycle was outside the target. The restored research archive counted one saved-testnet lifecycle. No new trade or continuous collection was performed; actual short acceptance remains pending.

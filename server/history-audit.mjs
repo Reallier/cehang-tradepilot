@@ -1,3 +1,4 @@
+import {verifyReceiptSelection} from './receipt-selection.mjs';
 import {hash} from './integrity.mjs';
 import {replayAccount} from './account-verification.mjs';
 import {decodeReceipt,normalizeTxHash,EVENT_ABI_HASH} from './events.mjs';
@@ -31,6 +32,7 @@ export function analyzeHistory(packet,{allowPartial=false}={}){
     for(const p of h.pages){if(!Array.isArray(p.value?.d)||p.value.d.length>100)fail('HISTORY_SCHEMA_INVALID');for(const row of p.value.d){const sig=hash(row);if(seen.has(sig))fail('DUPLICATE_HISTORY_ROW');seen.add(sig);}}
     if(h.complete!==!h.pages.at(-1).value.np)fail('HISTORY_COVERAGE_INVALID');
   }
+  const targetReceiptCoverage=verifyReceiptSelection(e);
   const snap=e.account.snapshot,ctx=snap.context,accounts=new Map(snap.wallet.as.map(a=>[a.id,a]));
   const reports=[];
   // Only terminal fully-filled opening orders are supported in this version.
@@ -73,7 +75,7 @@ export function analyzeHistory(packet,{allowPartial=false}={}){
     }catch(error){report.status=report.checks.some(c=>!c.passed)?'mismatch':'incomplete';report.reason=error.message;}
     reports.push(report);
   }
-  return {schema:HISTORY_AUDIT_SCHEMA,classification:packet.classification==='synthetic_testnet_history'?'synthetic_testnet_history_audit':'private_testnet_history_audit',collectedAt:e.collectedAt,abiSha256:EVENT_ABI_HASH,historyComplete:Object.values(e.histories).every(h=>h.complete),receiptCoverageComplete:e.receiptCoverageComplete,orders:reports,openPositionsObserved:snap.positions.d.length,preTradeBaseline:null,realizedPnl:null,limitations:['仅支持单笔全部成交IOC开仓，其他成交结构不自动通过。','历史资料和RPC回执一致性不构成共识最终性证明。','当前费率不能证明历史费率；缺少交易前基线，执行偏差保持未知。','开仓账户扣款包含仓位抵押与费用，不是已实现亏损；退出结算尚未核验。']};
+  return {schema:HISTORY_AUDIT_SCHEMA,classification:packet.classification==='synthetic_testnet_history'?'synthetic_testnet_history_audit':'private_testnet_history_audit',collectedAt:e.collectedAt,abiSha256:EVENT_ABI_HASH,historyComplete:Object.values(e.histories).every(h=>h.complete),receiptCoverageComplete:e.receiptCoverageComplete,...(targetReceiptCoverage?{targetReceiptCoverage}:{}),orders:reports,openPositionsObserved:snap.positions.d.length,preTradeBaseline:null,realizedPnl:null,limitations:['仅支持单笔全部成交IOC开仓，其他成交结构不自动通过。','历史资料和RPC回执一致性不构成共识最终性证明。','当前费率不能证明历史费率；缺少交易前基线，执行偏差保持未知。','开仓账户扣款包含仓位抵押与费用，不是已实现亏损；退出结算尚未核验。']};
 }
 export function historyAuditPacket(observation){const report=analyzeHistory(observation);return {schema:HISTORY_AUDIT_SCHEMA,observation,observationHash:hash(observation),report,reportHash:hash(report)};}
 export function replayHistoryAudit(packet){if(packet.schema!==HISTORY_AUDIT_SCHEMA||hash(packet.observation)!==packet.observationHash||hash(packet.report)!==packet.reportHash||hash(analyzeHistory(packet.observation))!==packet.reportHash)fail('HISTORY_AUDIT_REPLAY_MISMATCH');return {status:'reproduced',classification:packet.report.classification,orders:packet.report.orders.map(o=>({status:o.status,checks:o.checks.length})),realizedPnl:null};}
