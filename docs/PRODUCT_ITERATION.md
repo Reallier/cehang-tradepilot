@@ -50,3 +50,7 @@ Implemented compact preview-to-review navigation and direct in-memory baseline t
 ## Bounded account refresh and risk changes
 
 Implemented independent local read-only sampling, persisted cooldown/stop status and observation differences. Public users receive a labeled synthetic change example; no owner account is exposed. An earlier collection returned HTTP 451 and stopped. A later single cycle succeeded on 2026-10-10 at 19:44 Asia/Shanghai after both proxy-bypass variables were set. Three consecutive cycles then succeeded at 23:43 Asia/Shanghai. The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. See ACCOUNT_MONITOR.md.
+
+## Continuous acceptance (2026-10-12)
+
+The research panel now separates opening, settlement, baseline and comparative eligibility, including an original-window countdown and contextual next steps. A bounded read followed by the offline archive CLI produces replayable research/comparison files and a private status summary together. See CONTINUOUS_ACCEPTANCE.md. No extra protocol calls, trade authority or browser persistence is added.
