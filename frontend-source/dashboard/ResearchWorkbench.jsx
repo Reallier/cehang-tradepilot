@@ -10,7 +10,7 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {EXPERIMENT_TYPES,emptyResearch,newExperiment,researchReport,researchPacket,parseResearchFile,attachResearchEvidence,MAX_RESEARCH_BYTES} from '../research-workspace.mjs';
 import {TradeReview} from './TradeReview.jsx';
 import './research.css';
-const states={unsupported:'待扩展核验',needs_baseline:'待事前基线',direction_mismatch:'方向不一致',needs_trade:'待成交材料',needs_selection:'请选择成交',needs_evidence:'证据不足',baseline_mismatch:'基线未匹配',verified:'文件核验通过',partial:'部分退出',needs_exit:'待退出证据'};
+const states={plan_mismatch:'计划条件不符',unsupported:'待扩展核验',needs_baseline:'待事前基线',direction_mismatch:'方向不一致',needs_trade:'待成交材料',needs_selection:'请选择成交',needs_evidence:'证据不足',baseline_mismatch:'基线未匹配',verified:'文件核验通过',partial:'部分退出',needs_exit:'待退出证据'};
 export function ResearchWorkbench({active,api,download,currentBaseline,onPrepare}){
  const [workspace,setWorkspace]=useState(emptyResearch),[selected,setSelected]=useState(null),[kind,setKind]=useState('short_full'),[drafts,setDrafts]=useState({}),[dirty,setDirty]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false),[mergeSummary,setMergeSummary]=useState(null);
  const generation=useRef(0),client=useRef(null),[analysis,setAnalysis]=useState(()=>({report:researchReport(emptyResearch()),comparison:null})),report=analysis.report,experiment=workspace.experiments.find(e=>e.id===selected),row=report.rows.find(r=>r.id===selected);
@@ -59,7 +59,7 @@ export function ResearchWorkbench({active,api,download,currentBaseline,onPrepare
  <p className="tp-note">{experiment.baseline?'已关联事前基线':'尚无事前基线'} · {experiment.trade?'已关联成交文件':'尚无成交文件'}。缺失回执、方向不符或未完成退出都会保留待核验状态。</p>
  {!!row.choices.length&&<label>核验哪次开仓<select aria-label="选择实验成交" disabled={busy} value={experiment.journeyId??''} onChange={e=>action(token=>replace({...experiment,journeyId:e.target.value||null},token))}><option value="">请选择</option>{row.choices.map(c=><option key={c.id} value={c.id}>{c.label}</option>)}</select></label>}
  {row.duplicate&&<p className="tp-alert">此成交被多个实验引用，覆盖数量只计一次。</p>}
- {['short_full','long_full','partial'].includes(experiment.kind)&&<button disabled={busy} onClick={()=>onPrepare(experiment.kind==='partial'?'long_full':experiment.kind)}>准备{experiment.kind==='short_full'?'空头':'多头'}预演（1× / 不利5%情景）</button>}
+ {['short_full','long_full','partial'].includes(experiment.kind)&&<button disabled={busy} onClick={()=>onPrepare(experiment)}>准备{experiment.kind==='short_full'?'空头':'多头'}预演（{experiment.plan?`${experiment.plan.leverage}× / 计划条件`:'1× / 不利5%情景'}）</button>}
  <ol className="tp-checklist"><li>使用 Monad Testnet（10143）的测试账户和测试代币。</li><li>在交易前运行新预演并保存基线；按基线有效期完成开仓，过期后重新预演。</li><li>在官方测试网页面自行确认交易；完成全量退出后，用只读工具采集历史和回执。</li><li>导入材料并选择对应开仓，检查预估偏差和结算。一次只验证一个生命周期。</li></ol>
  <p className="tp-note">每次最多采集4笔回执。已选择开仓时可导出采集目标，在本机只读工具使用 --target 文件路径，优先获取本次开平仓回执；其余历史仍完整保留用于核验。没有所需历史行或目标超过上限时停止，不能判定通过。</p>{row.journey&&<button disabled={busy} onClick={()=>action(()=>download(receiptTargetForJourney(row.journey),'tradepilot-receipt-target.json'))}>导出本实验采集目标</button>}{experiment.trade?.report.opening.targetReceiptCoverage&&<p className="tp-note">定向采集：{experiment.trade.report.opening.targetReceiptCoverage.receiptsAvailable?'目标回执已返回':'目标回执缺失'} · {experiment.trade.report.opening.targetReceiptCoverage.historyComplete?'历史分页完整':'历史仍有截断'}。回执返回不等于成交核验通过；未选中的其他交易可能显示缺失回执。</p>}
  {experiment.trade&&<TradeReview trade={experiment.trade} baseline={experiment.baseline} download={download}/>}</> }</section></div></section>;

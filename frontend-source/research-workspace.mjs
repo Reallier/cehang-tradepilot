@@ -1,10 +1,12 @@
+import {replayResearch as replayV2} from './research-workspace-v2.mjs';
+import {matchExperimentPlan,validateExperimentPlan} from './experiment-plan.mjs';
 import {replayResearch as replayV1} from './research-workspace-v1.mjs';
 import {hash} from '../server/integrity.mjs';
 import {verifyBaseline} from '../server/pretrade-baseline.mjs';
 import {importTradeReview,workspaceReview,replayWorkspaceReview} from './trade-review.mjs';
 import {reviewJourneys} from './review-journeys.mjs';
 
-export const RESEARCH_SCHEMA='testnet-research-workspace-v2',MAX_RESEARCH_BYTES=8*1024*1024;
+export const RESEARCH_SCHEMA='testnet-research-workspace-v3',MAX_RESEARCH_BYTES=8*1024*1024;
 export const EXPERIMENT_TYPES=[
  {id:'short_full',label:'空头单次开平仓',direction:'空头',supported:true,purpose:'核对空头的预估成交价、交易费、资金损益和完整退出结算。'},
  {id:'long_full',label:'多头单次开平仓',direction:'多头',supported:true,purpose:'核对多头的事前基线、成交偏差和完整退出结算。'},
@@ -31,8 +33,9 @@ export function researchReport(workspace){
  if(!workspace||Object.keys(workspace).join()!=='experiments'||!Array.isArray(workspace.experiments)||workspace.experiments.length>20)throw new Error('研究工作区最多包含20轮实验');
  if(new TextEncoder().encode(JSON.stringify(workspace)).length>MAX_RESEARCH_BYTES)throw new Error('研究工作区超过8MB，请拆分保存');
  const ids=new Set(),rows=workspace.experiments.map(e=>{
-  if(!e||Object.keys(e).sort().join()!==['id','kind','title','purpose','notes','createdAt','baseline','trade','journeyId'].sort().join()||
+  if(!e||Object.keys(e).filter(k=>k!=='plan').sort().join()!==['id','kind','title','purpose','notes','createdAt','baseline','trade','journeyId'].sort().join()||
    typeof e.id!=='string'||!/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(e.id)||ids.has(e.id)||!Number.isFinite(Date.parse(e.createdAt)))throw new Error('实验标识或结构无效');
+  if(e.plan!=null)validateExperimentPlan(e.plan);
   ids.add(e.id);text(e.title,120);text(e.purpose,800);text(e.notes,2000);
   if(e.journeyId!==null&&typeof e.journeyId!=='string')throw new Error('成交选择无效');
   const type=EXPERIMENT_TYPES.find(t=>t.id===e.kind);if(!type)throw new Error('未知实验类型');
@@ -41,8 +44,10 @@ export function researchReport(workspace){
   const source=e.trade?(e.trade.observation.classification==='synthetic_testnet_history'?'synthetic':'saved_testnet'):'none';
   const direction=e.baseline?.evidence.preview.result.input.direction;
   let state=!type.supported?'unsupported':!e.baseline?'needs_baseline':direction!==(e.kind==='short_full'?'short':'long')?'direction_mismatch':!e.trade?'needs_trade':!j?'needs_selection':j.direction!==type.direction?'direction_mismatch':j.open.status!=='opening_reconciled'?'needs_evidence':j.comparison?.status!=='compared'?'baseline_mismatch':j.state==='closed'?(e.kind==='partial'&&(j.exits.length<2||e.trade.schema!=='testnet-trade-review-v3')?'needs_evidence':'verified'):j.state==='partial'?'partial':j.state==='exit_missing'?'needs_exit':'needs_evidence';
+  const evidenceState=state,planMatch=matchExperimentPlan(e.plan,e.baseline);
+  if(planMatch.status==='mismatch')state='plan_mismatch';
   const identity=j?JSON.stringify([source,10143,e.trade.observation.evidence.account.snapshot.expectedWallet.toLowerCase(),j.accountId,j.marketId,j.open.orderId,j.open.txHash]):null;
-  return {id:e.id,kind:e.kind,state,source,identity,duplicate:false,journey:j??null,
+  return {id:e.id,kind:e.kind,state,evidenceState,planMatch,source,identity,duplicate:false,journey:j??null,
    choices:journeys.map(j=>({id:j.id,label:`${j.asset} · ${j.direction} · #${j.open.orderId}`})),
    baselineHash:e.baseline?.evidenceHash??null,
    note:'复算保存的文件，不实时查询链、不认证文件来源或保存时间；不证明策略收益。'};
@@ -56,6 +61,7 @@ export function researchReport(workspace){
 export function researchPacket(workspace){const report=researchReport(workspace);const packet={schema:RESEARCH_SCHEMA,workspace,report,workspaceHash:hash(workspace),reportHash:hash(report)};if(new TextEncoder().encode(JSON.stringify(packet,null,2)).length>MAX_RESEARCH_BYTES)throw new Error('完整导出超过8MB，请拆分工作区');return packet;}
 export function replayResearch(p){
  if(p?.schema==='testnet-research-workspace-v1')return replayV1(p);
+ if(p?.schema==='testnet-research-workspace-v2')return replayV2(p);
  if(p?.schema!==RESEARCH_SCHEMA)throw new Error('请选择测试网研究工作区文件');
  const expected=researchPacket(p.workspace);if(hash(expected)!==hash(p))throw new Error('研究工作区无法复算');
  return {status:'reproduced',...expected.report};

@@ -11,7 +11,8 @@ export function experimentProgress(experiment,row,now=Date.now()){
  const settlement=!j?'missing':j.state==='closed'?'verified':j.state==='partial'?'partial':j.state==='exit_missing'?'missing':'unverified';
  const comparison=j?.comparison?.status==='compared'?'matched':j?'unavailable':'pending';
  let next;
- if(row.state==='unsupported')next='当前生命周期不支持自动验收，请保留原始材料。';
+ if(row.state==='plan_mismatch')next='事前基线参数不符合固定计划，保留本次成交与结算证据，不计入该计划的验收和比较。';
+ else if(row.state==='unsupported')next='当前生命周期不支持自动验收，请保留原始材料。';
  else if(experiment.trade&&!j)next='选择本轮对应的开仓；不要重新下单。';
  else if(opening==='unverified'||settlement==='unverified')next='补齐本次交易的历史与回执，重新只读采集；不要重复下单。';
  else if(opening==='verified'&&settlement!=='verified')next='当前已有开仓证据。完成原测试仓位退出后，定向采集并归档结算；无需重新开仓。';

@@ -2,11 +2,11 @@
 export class RuntimeDiagnostics {
  constructor({now=()=>Date.now()}={}){this.now=now;this.startedAt=now();this.feeds=new Map();}
  async observe(network,operation){
-  const start=this.now(),old=this.feeds.get(network)??{lastSuccess:null,failures:0,events:[]};
-  try{const value=await operation(),at=this.now();const row={...old,lastAttempt:start,lastSuccess:at,lastError:null,failures:0,durationMs:at-start};
+  const start=this.now(),latest=()=>this.feeds.get(network)??{lastSuccess:null,failures:0,events:[]};
+  try{const value=await operation(),at=this.now(),old=latest();const row={...old,lastAttempt:Math.max(start,old.lastAttempt??start),lastSuccess:at,lastError:null,failures:0,durationMs:at-start};
    row.events=[...old.events,{at,status:'success'}].slice(-12);this.feeds.set(network,row);return value;
-  }catch(error){const at=this.now(),code=/451/.test(error.message)?'restricted_451':/403/.test(error.message)?'restricted_403':/429|冷却|预算/.test(error.message)?'cooldown':/timeout|超时/i.test(error.message)?'timeout':'unavailable';
-   this.feeds.set(network,{...old,lastAttempt:start,lastError:code,failures:old.failures+1,durationMs:at-start,events:[...old.events,{at,status:code}].slice(-12)});throw error;
+  }catch(error){const at=this.now(),old=latest(),code=/451/.test(error.message)?'restricted_451':/403/.test(error.message)?'restricted_403':/429|冷却|预算/.test(error.message)?'cooldown':/timeout|超时/i.test(error.message)?'timeout':'unavailable';
+   this.feeds.set(network,{...old,lastAttempt:Math.max(start,old.lastAttempt??start),lastError:code,failures:old.failures+1,durationMs:at-start,events:[...old.events,{at,status:code}].slice(-12)});throw error;
   }
  }
  snapshot(reader){const now=this.now();return {schema:'runtime-diagnostics-v1',observedAt:now,startedAt:this.startedAt,passive:true,process:'running',upstreamProbed:false,networks:['mainnet','testnet'].map(network=>{

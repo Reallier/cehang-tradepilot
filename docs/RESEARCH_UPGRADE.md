@@ -2,7 +2,7 @@
 
 ## Browser work and privacy
 
-Research mutations, archive import/merge and export run in a dedicated module Worker. The verified report is reused by the comparison view; state is committed only after successful validation. Cancelling terminates the worker and generation checks reject late file/API results. Older workspace/comparison v1 and trade-review v2 packets retain their original replay rules; new exports use workspace/comparison v2 and trade-review v3. Raw observations are rechecked under the current model; an old report is never silently rewritten.
+Research mutations, archive import/merge and export run in a dedicated module Worker. The verified report is reused by the comparison view; state is committed only after successful validation. Cancelling terminates the worker and generation checks reject late file/API results. Older workspace/comparison v1/v2, test-plan v1 and trade-review v2 packets retain their original replay rules; new exports use workspace/comparison v3, test-plan v2 and trade-review v3. Raw observations are rechecked under the current model; an old report is never silently rewritten.
 
 本机研究恢复 is opt-in and off on each page load. Enabling it saves complete research drafts locally after a debounce, with the last three distinct versions in IndexedDB. This is plaintext storage for this site/browser, not an encrypted vault or cloud backup. Shared devices should leave it off. Restore independently replays the selected archive and replaces the page workspace; disable autosave before restoring. 删除全部本机快照 clears stored versions without clearing the current page. Browser storage removal/quotas can lose copies, so exported files remain the portable backup. No credential is stored by this feature.
 
@@ -27,3 +27,13 @@ The field definitions were checked against [Perpl's official types](https://gith
 固定条件测试网实验计划 creates 1–3 repetitions each of long/full, short/full and long/staged drafts using one parameter set. It exports a replayable plan and merges drafts into the workspace. Each actual trial needs current-market minimum-size checks, a fresh baseline and actual saved trade/receipt evidence. If a partial size is below the protocol minimum, record the trial as infeasible rather than enlarging funding. No orders are submitted; no baseline time is changed to fit a trade.
 
 server/capabilities.mjs drives the UI and generated CURRENT_CAPABILITIES.md. Run `node scripts/capability-docs.mjs --test-log /absolute/completed-test.log` after a complete successful suite. Historical dated release reports are preserved. Actual chain samples, automated tests, source deployment and human usability remain separate evidence categories.
+
+## Review repairs — 2026-10-12
+
+Fixed test plans now carry structured market ID, requested notional, leverage and slippage limits. Preparing an experiment restores all four fields. Acceptance checks them against the verified pre-trade baseline separately from baseline-to-execution and settlement checks. Any mismatch is visible and excluded from fixed-plan coverage and comparisons, while valid trade evidence remains available. Requested notional is compared with the baseline request; executed notional can differ because of quantity rounding, execution price or partial fills. File replay cannot establish that a plan was declared before a trade; hashes detect inconsistency, not authenticity or chronology.
+
+Old archives replay under frozen version rules. Restoring an old archive into the current workspace does not invent constraints from its editable prose: it displays “未声明结构化计划”. General evidence verification can still pass, but must not be represented as proof of compliance with a fixed plan. Current plans require positive slippage limits, consistent with preview validation.
+
+Per-market scenario edits now belong to the account workspace and survive subview navigation; importing a different scenario replaces those edits and clearing the page removes them. This does not add automatic persistence across browser reloads.
+
+Concurrent passive diagnostic reads merge results when each operation completes. Events and the last successful read are retained, consecutive failures follow completion order, request-start time never moves backwards, and networks remain isolated. The event window stays capped at 12; no additional upstream requests are introduced.

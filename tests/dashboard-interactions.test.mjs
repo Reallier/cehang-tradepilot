@@ -177,3 +177,33 @@ test('importing two scenarios over the same observation restores the new paramet
   await click('导出逐市场情景');assert.equal(replayPortfolioScenario(downloads[0]).status,'reproduced');assert.deepEqual(downloads[0].scenario,scenario);
  }finally{await act(async()=>root.unmount());}
 });
+
+
+test('edited market scenarios survive account subview navigation and export the retained values',async()=>{
+ const {portfolioExample}=await import('../server/portfolio-example.mjs');
+ const {defaultScenario,portfolioScenarioPacket,replayPortfolioScenario}=await import('../server/portfolio-scenarios.mjs');
+ const observation=portfolioExample(),scenario=defaultScenario(observation),downloads=[],root=createRoot(container);
+ try{
+  await act(async()=>root.render(el(AccountWorkbench,{active:true,api:async()=>({available:false}),tick:Date.now(),download:p=>downloads.push(p)})));
+  const n=container.querySelector('[aria-label="选择账户或成交证据文件"]');Object.defineProperty(n,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(portfolioScenarioPacket(observation,scenario))}]});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));await settle();
+  await input('市场1 shockPct','-20');await input('市场1 exitDepthPct','50');await input('市场1 fundingBps','3');await input('市场1 exitSlippageBps','25');await input('情景持有小时','12');
+  await click('1 实际持仓');await click('2 持仓压力预演');await click('账户风险总览');
+  assert.equal(container.querySelector('[aria-label="市场1 shockPct"]').value,'-20');assert.equal(container.querySelector('[aria-label="情景持有小时"]').value,'12');
+  await click('导出逐市场情景');const exported=downloads.at(-1);assert.equal(replayPortfolioScenario(exported).status,'reproduced');assert.equal(exported.scenario.hours,12);assert.deepEqual(exported.scenario.markets[0],{...scenario.markets[0],shockPct:-20,exitDepthPct:50,fundingBps:3,exitSlippageBps:25});
+  await click('清除本页数据');assert.equal(container.querySelector('[aria-label="市场1 shockPct"]'),null);
+ }finally{await act(async()=>root.unmount());}
+});
+
+
+test('research UI separates plan mismatch from verified evidence and prepares the declared parameters',async()=>{
+ const {createTestPlan}=await import('../frontend-source/testnet-plan.mjs');
+ const {attachResearchEvidence,researchPacket}=await import('../frontend-source/research-workspace.mjs');
+ const e=attachResearchEvidence(createTestPlan({marketId:16,notional:10,leverage:2,slippageBps:50}).evidence.research.workspace.experiments[0],guidedReview());
+ const prepared=[],root=createRoot(container);
+ try{
+  await act(async()=>root.render(el(ResearchWorkbench,{active:true,api:async()=>{throw new Error('No network expected');},download:()=>{},onPrepare:e=>prepared.push(e)})));
+  const n=container.querySelector('[aria-label="恢复研究工作区"]');Object.defineProperty(n,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(researchPacket({experiments:[e]}))}]});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));await settle();
+  const progress=container.querySelector('[aria-label="本轮验收进度"]');assert.ok(progress.textContent.includes('事前对照已匹配'));assert.ok(progress.textContent.includes('计划条件与基线不符'));assert.ok(progress.textContent.includes('比较准入未通过'));assert.ok(!progress.textContent.includes('基线未匹配'));
+  await click('准备多头预演（2× / 计划条件）');assert.deepEqual(prepared[0].plan,e.plan);
+ }finally{await act(async()=>root.unmount());}
+});

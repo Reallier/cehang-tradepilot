@@ -1,8 +1,9 @@
+import {replayResearchComparison as replayV2} from './research-comparison-v2.mjs';
 import {replayResearchComparison as replayV1} from './research-comparison-v1.mjs';
 import {hash} from '../server/integrity.mjs';
 import {researchReport,MAX_RESEARCH_BYTES} from './research-workspace.mjs';
 
-export const RESEARCH_COMPARISON_SCHEMA='testnet-research-comparison-v2';
+export const RESEARCH_COMPARISON_SCHEMA='testnet-research-comparison-v3';
 export const COMPARISON_METRICS=[
  {key:'adverseBps',label:'入场不利偏差',unit:'bps'},
  {key:'feeDeltaBps',label:'入场费偏差',unit:'bps'},
@@ -11,7 +12,7 @@ export const COMPARISON_METRICS=[
  {key:'netBps',label:'已实现净损益',unit:'bps'},
  {key:'stressBufferPct',label:'事前压力缓冲 / 名义金额',unit:'%'}
 ];
-const reasons={unsupported:'此生命周期尚不支持核验',needs_baseline:'缺少事前基线',direction_mismatch:'方向不一致',needs_trade:'缺少成交材料',needs_selection:'尚未选择成交',needs_evidence:'成交证据不足',baseline_mismatch:'基线未匹配',partial:'尚未全量退出',needs_exit:'缺少退出证据',duplicate:'重复成交，仅保留一份',conflict:'同一成交存在不同基线或结果，全部排除',invalid_metrics:'数值不完整或超出范围'};
+const reasons={plan_mismatch:'事前基线不符合固定计划条件',unsupported:'此生命周期尚不支持核验',needs_baseline:'缺少事前基线',direction_mismatch:'方向不一致',needs_trade:'缺少成交材料',needs_selection:'尚未选择成交',needs_evidence:'成交证据不足',baseline_mismatch:'基线未匹配',partial:'尚未全量退出',needs_exit:'缺少退出证据',duplicate:'重复成交，仅保留一份',conflict:'同一成交存在不同基线或结果，全部排除',invalid_metrics:'数值不完整或超出范围'};
 export function sampleStatistics(values){
  if(!values.length)return {n:0,mean:null,median:null,min:null,max:null};
  if(values.some(v=>!Number.isFinite(v)))throw new Error('统计输入必须为有限数字');
@@ -62,6 +63,7 @@ export function researchComparisonPacket(workspace){
  if(new TextEncoder().encode(JSON.stringify(packet,null,2)).length>MAX_RESEARCH_BYTES)throw new Error('完整对比导出超过8MB，请拆分工作区');return packet;
 }
 export function replayResearchComparison(packet){if(packet?.schema==='testnet-research-comparison-v1')return replayV1(packet);
+ if(packet?.schema==='testnet-research-comparison-v2')return replayV2(packet);
  if(packet?.schema!==RESEARCH_COMPARISON_SCHEMA)throw new Error('请选择跨实验对比文件');
  const expected=researchComparisonPacket(packet.workspace);if(hash(expected)!==hash(packet))throw new Error('跨实验对比无法复算');
  return {status:'reproduced',...expected.report};

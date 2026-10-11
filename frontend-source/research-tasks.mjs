@@ -6,7 +6,7 @@ export function researchTask(operation,payload){
  if(operation==='restore'){
   if(typeof payload.raw!=='string'||new TextEncoder().encode(payload.raw).length>8*1024*1024)throw new Error('研究文件超过8MB');
   const p=JSON.parse(payload.raw);
-  if(/^testnet-research-comparison-v[12]$/.test(p?.schema))replayResearchComparison(p);else replayResearch(p);
+  if(/^testnet-research-comparison-v[123]$/.test(p?.schema))replayResearchComparison(p);else replayResearch(p);
   workspace=p.workspace;
  }
  if(operation==='merge'){const result=mergeResearchFiles(workspace,payload.raws);workspace=result.workspace;summary=result.summary;}
