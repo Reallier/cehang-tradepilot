@@ -1,4 +1,19 @@
-# Current release — reviewed source publication and monitor fixes
+# Current release — budget sizing and complete account-page clear
+
+- Released 2026-10-11 at https://reallier.com/demos/tradepilot/ . Runtime source `4894eeac1ac0f56d8e535ba603214d15250d022b` is published on GitHub. Later acceptance-documentation commits do not change this runtime.
+- Image `localhost/tradepilot-demo:84ef06e4eeeb`; config digest `15ca8c7b2a3f7b302c33024137b9c68cea34b3f8f0d6b81f0f6f78beead03a03`; source revision label verified.
+- Archive SHA-256 `84ef06e4eeebb60cafa27861d5fa43dd50b2236a7cb236d5d3d6dee750a35612`.
+- JS `36c9dcd163fff06290d57278135b8eaab54604126ba53a8e59cc632af8344136`; CSS `0e67b697f3c52fda0900184e6193bf752eedd73342c32cc6b0722e405de36293`. Candidate, container and certificate-verified public HTTPS assets match.
+- Pod `tradepilot-57b57d848b-h4bxb`: 1/1 Ready, zero restarts at acceptance. The deployed budget model hash matches the reviewed source.
+- 120 tests passed, including bounded size-search/exhaustive-grid arithmetic and offline DOM interaction tests for full clear, late responses, budget invalidation, evidence reuse, transfer and export. Build, tracked privacy scan and Gitleaks source/history checks passed. Production dependencies exclude DOM testing and build tools.
+- Public health/session checks keep both order modes disabled; local observation and monitor endpoints remain unavailable publicly. Eleven public markets loaded; a fresh saved comparison produced a budget interval and its exported packet replayed independently. The public synthetic guided lifecycle also replayed.
+- No private account collection or transaction was performed for this release. Runtime-package scanning found no configured private credential or wallet strings.
+- Offline DOM tests are not browser visual acceptance. Interactive browser acceptance was not repeated under the existing Computer Use restriction.
+- Rollback `releases/84ef06e4eeeb/previous-demo.yaml` restores `ddc14b8369fb`. This is a manual update to the existing dedicated K3s deployment, not CI/Flux.
+
+---
+
+# Previous release — reviewed source publication and monitor fixes
 
 - Released 2026-10-10 at https://reallier.com/demos/tradepilot/ .
 - Runtime source commit `68912ba3188d6f8d176f7403efbf2bdc456a7d9f` is published to `Reallier/cehang-tradepilot` on GitHub. Subsequent documentation-only commits record this acceptance; they do not change the runtime.

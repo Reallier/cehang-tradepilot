@@ -33,3 +33,7 @@ node scripts/replay.mjs /absolute/path/budget-comparison_ID.json
 Hash/replay proves internal consistency only. Tests cover independent flat-book arithmetic, exhaustive cent-grid comparisons across long/short and signed funding, minimum quantity/settlement, zero budgets, incomplete depth, missing inputs, stale/paused markets, invalid leverage, cap rounding, bounded search and rehashed tampering.
 
 Offline DOM tests exercise budget editing, result invalidation, one-time evidence fetch, export replay and parameter transfer. They also verify full account-page clear, disabled polling and late-response rejection. They are not fresh browser, visual, accessibility or live-chain acceptance.
+
+## Release acceptance — 2026-10-11
+
+120 tests and production build passed. HTTPS assets match the deployed source; a newly saved public-market comparison produced a bounded interval and exported search replayed successfully. Both transaction modes remain disabled and private endpoints unavailable. See PUBLIC_LAUNCH.md for the runtime identity and browser-verification limit.
