@@ -1,5 +1,5 @@
 import {simulate,MODEL_VERSION} from './risk.mjs';
-import {hash} from './store.mjs';
+import {hash} from './integrity.mjs';
 
 export function comparePlans({market,context,book,inputs,now=Date.now()}) {
   if(!Array.isArray(inputs)||inputs.length!==2)throw new Error('需提供恰好两个交易方案');

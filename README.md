@@ -14,13 +14,14 @@ The demo is deployed over HTTPS; see docs/PUBLIC_LAUNCH.md for its verified rele
 
 Start with the [judge walkthrough](docs/JUDGE_GUIDE.md) and [existing-foundation / competition-work disclosure](docs/BUILD_DISCLOSURE.md).
 
-Current verification: **113 tests pass in the current source; 110 passed at the deployed runtime release**. The local monitor now supports one bounded context catch-up without weakening freshness/head checks; its three-round follow-up used five requests per round and did not naturally trigger catch-up. The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. Both proxy-bypass variable cases were set; this run had no HTTP 451. Historical testnet lifecycle evidence and synthetic examples remain distinct. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
+Current verification: **120 tests pass in the current source; 110 passed at the deployed runtime release**. The local monitor now supports one bounded context catch-up without weakening freshness/head checks; its three-round follow-up used five requests per round and did not naturally trigger catch-up. The default 15-cycle local testnet read-only run completed on 2026-10-11 (chain 10143, zero positions): 13 complete snapshots and 2 incomplete snapshots. Incomplete rounds were marked stale because the context head lagged behind the account snapshots; subsequent scheduled rounds recovered without extra retry. The collector stopped normally and released its writer lock. Unattended scheduling and live 429/451 recovery remain unaccepted. Both proxy-bypass variable cases were set; this run had no HTTP 451. Historical testnet lifecycle evidence and synthetic examples remain distinct. See [monitor behavior and limits](docs/ACCOUNT_MONITOR.md).
 
 ## Implemented scope
 
 - Read-only Perpl public context, order book and completed candles.
 - Fee, funding, depth, margin and stress estimates, with unknown inputs kept unknown.
 - Two scenarios compared against the same market snapshot, with local margin/loss budgets and parameter transfer to a fresh preview.
+- Budget-driven size intervals under fixed plan assumptions, with local computation, constraint explanations, endpoint transfer and replayable evidence. See [budget sizing](docs/BUDGET_SIZING.md).
 - Saved JSON evidence, hashes and complete local replay.
 - Account workspace: browser-local observation/history import, position stress, receipt/settlement review, pre-trade baseline comparison and replayable export. One-click synthetic guided case requires no wallet or files. See [account workflow](docs/ACCOUNT_WORKFLOW.md).
 - Collateral-aware portfolio stress, guided evidence import and direct pre-trade-baseline handoff.

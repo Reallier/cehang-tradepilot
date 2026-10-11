@@ -11,6 +11,8 @@ export function AccountUpdates({active,api,tick,onUse}){
  const local=['127.0.0.1','localhost'].includes(location.hostname);
  const [monitor,setMonitor]=useState(null),[poll,setPoll]=useState(false),[synthetic,setSynthetic]=useState(false),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const generation=useRef(0),apiRef=useRef(api);apiRef.current=api;
+ // Invalidate manual reads as well as polling when the whole page is cleared.
+ useEffect(()=>()=>{generation.current++;},[]);
  async function refresh(){
   const id=++generation.current;setBusy(true);
   try{
@@ -27,7 +29,7 @@ export function AccountUpdates({active,api,tick,onUse}){
  const status=error?'读取失败':states[monitorFreshness(monitor,tick)];
  function example(){generation.current++;setBusy(false);setPoll(false);setError('');setSynthetic(true);setMonitor(monitorExample());}
  return <section className="account-updates" aria-label="账户只读更新"><header><div><h2>账户更新与风险变化</h2><p>{synthetic?'合成变化案例 · 固定历史时点，无链上交易':local?'本机独立采集器 → 本页只读观察':'真实账户更新仅在本机启用，公网不提供私有账户数据'}</p></div><div>{local&&<><button disabled={busy} onClick={refresh}>读取最新观察</button><button aria-pressed={poll} onClick={()=>{setSynthetic(false);setPoll(v=>!v);}}>自动读取 {poll?'开':'关'}</button></>}<button onClick={example}>体验风险变化案例</button></div></header>
- <p className="tp-note">采集间隔至少60秒，每轮最多5个串行只读请求。页面自动读取每15秒检查本机文件，隐藏页面暂停读取；页面开关不控制独立采集器。</p>
+ <p className="tp-note">采集间隔至少60秒，通常每轮5个串行只读请求；仅上下文追赶时最多6个。页面自动读取每15秒检查本机文件，隐藏页面暂停读取；页面开关不控制独立采集器。</p>
  {error&&<p role="alert" className="tp-alert">{error}</p>}{busy&&<p role="status">读取并复算观察…</p>}
  {monitor&&<><div className="update-status"><strong>{synthetic?'合成案例 · 非实时':status}</strong><span>上次采集成功：{time(monitor.lastSuccessAt)}</span><span>下次允许采集：{monitor.state==='stopped'?'已停止':time(monitor.nextAttemptAt)}</span></div>
  {monitor.state==='stopped'&&<p className="tp-alert">采集已停止。{monitor.detail==='UPSTREAM_451'?'协议返回 HTTP 451；需先确认允许的运行环境或由协议方解除限制，再手动启用。':monitor.code==='ACCESS_OR_VALIDATION_STOP'?'账户访问或数据校验未通过，请检查本机脱敏诊断记录。':'可能已到达本轮采集次数或时间上限。'}不会自动恢复或下单。</p>}

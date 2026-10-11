@@ -16,6 +16,8 @@ Incomplete depth or missing net-PnL/margin inputs yields unknown; a model blocke
 
 Selecting either plan only copies its normalized scenario parameters into the preview and clears the old result. A new risk calculation is required before saving a new baseline. Changing parameters invalidates the displayed comparison; changing budgets re-evaluates the same saved comparison without requesting market data. A displayed saved comparison does not update when live quotes refresh.
 
+The budget search panel now finds a bounded target-size interval using either plan's fixed assumptions and the same saved evidence. See [BUDGET_SIZING.md](BUDGET_SIZING.md) for grid precision, constraints, local computation and replay. It does not select leverage or automatically recommend an endpoint.
+
 ## Reproducibility
 
 `导出方案与预算证据` downloads `plan-decision-review-v1`, containing the original comparison context/book, original inputs/results, normalized user limits, decision report and integrity hashes. Budgets are not sent to the service. The original comparison-only export remains available.

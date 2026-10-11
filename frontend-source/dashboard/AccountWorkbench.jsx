@@ -15,9 +15,16 @@ import {TradeReview} from './TradeReview.jsx';
 export function AccountWorkbench({active,api,download,tick,onMarket,onProgress,ref}){
  const [packet,setPacket]=useState(null),[selected,setSelected]=useState(''),[view,setView]=useState('positions'),[shock,setShock]=useState(-10),[error,setError]=useState(''),[busy,setBusy]=useState(false),[origin,setOrigin]=useState('');
  const [importStatus,setImportStatus]=useState('');
+ const [clearEpoch,setClearEpoch]=useState(0);
  const [portfolioShock,setPortfolioShock]=useState(-10);
  const [trade,setTrade]=useState(null),[baseline,setBaseline]=useState(null);
  const file=useRef(null),attempt=useRef(0),loaded=useRef(false);
+ function clearPage(){
+  attempt.current++;loaded.current=true;
+  setPacket(null);setTrade(null);setBaseline(null);setError('');setImportStatus('');setBusy(false);
+  setSelected('');setView('positions');setShock(-10);setPortfolioShock(-10);setOrigin('');
+  setClearEpoch(v=>v+1);
+ }
  function applyImport(result,from,id){
   if(id!==attempt.current)return;
   if(result.kind==='baseline'){setBaseline(result.baseline);setView('review');setImportStatus(result.label);return;}
@@ -40,9 +47,9 @@ export function AccountWorkbench({active,api,download,tick,onMarket,onProgress,r
  const review=useMemo(()=>risk?reviewObservation(packet,chosen.positionId,chosen.accountId):null,[packet,chosen]);
  const exportReview=()=>download({schema:'account-workflow-review-v1',createdAt:new Date().toISOString(),observation:packet,scenario,review},'tradepilot-private-review.json');
  return <section className="account-workbench" hidden={!active}>
- <header className="account-heading"><div><span className="eyebrow">ACCOUNT WORKSPACE</span><h1>账户工作台</h1><p>从实际持仓出发，检查价格冲击，保留复盘依据。</p></div><div className="account-actions"><input ref={file} type="file" accept=".json,application/json" aria-label="选择账户或成交证据文件" onChange={readFile} hidden/><button disabled={busy} onClick={()=>file.current.click()}><Upload size={14}/>读取本机证据</button>{['localhost','127.0.0.1'].includes(location.hostname)&&<button disabled={busy} onClick={local}><RefreshCw size={14}/>重新加载采集结果</button>}{(packet||baseline)&&<button onClick={()=>{attempt.current++;setPacket(null);setTrade(null);setBaseline(null);setError('');setImportStatus('');setBusy(false);}}>清除本页数据</button>}</div></header>
+ <header className="account-heading"><div><span className="eyebrow">ACCOUNT WORKSPACE</span><h1>账户工作台</h1><p>从实际持仓出发，检查价格冲击，保留复盘依据。</p></div><div className="account-actions"><input ref={file} type="file" accept=".json,application/json" aria-label="选择账户或成交证据文件" onChange={readFile} hidden/><button disabled={busy} onClick={()=>file.current.click()}><Upload size={14}/>读取本机证据</button>{['localhost','127.0.0.1'].includes(location.hostname)&&<button disabled={busy} onClick={local}><RefreshCw size={14}/>重新加载采集结果</button>}<button onClick={clearPage}>清除本页数据</button></div></header>
  <div className="account-privacy"><ShieldCheck size={14}/><span>账户、成交与基线文件仅在本页内存中处理，不上传、不存入浏览器存储。刷新页面会清除。这里不接收 API 密钥。</span></div>
- <AccountUpdates active={active} api={api} tick={tick} onUse={async p=>{const id=++attempt.current;setBusy(true);setError('');try{await accept(p,'只读更新观察',id);}catch(e){if(id===attempt.current)setError(importFailure(e));}finally{if(id===attempt.current)setBusy(false);}}}/>
+ <AccountUpdates key={clearEpoch} active={active} api={api} tick={tick} onUse={async p=>{const id=++attempt.current;setBusy(true);setError('');try{await accept(p,'只读更新观察',id);}catch(e){if(id===attempt.current)setError(importFailure(e));}finally{if(id===attempt.current)setBusy(false);}}}/>
  {error&&<><GuidanceItem item={error} alert/>{(packet||baseline)&&<p className="tp-note">此次导入未替换当前已读取的证据。</p>}</>}
  {importStatus&&<p className="evidence-import-status" role="status">{importStatus}</p>}<EvidenceFileGuide/>{busy&&<p role="status">正在读取并复算观察包…</p>}
  {baseline&&<section className="baseline-handoff" aria-label="当前复盘基线"><strong>当前复盘基线 · {baseline.evidence.preview.network==='testnet'?'Monad 测试网':'Monad 主网'}</strong><p>保存于 {time(baseline.evidence.savedAt)} · 成交关联截止 {time(baseline.evidence.validUntil)}</p><p>基线在本页内存中。{baseline.evidence.preview.network!=='testnet'?'当前成交核验仅支持测试网，此主网基线不能匹配测试网交易。':''}{trade?'仅匹配核验通过且参数、时间对应的开仓。':'下一步：读取同次交易的历史与回执文件；未读取前不产生任何成交结论。'}</p><button disabled={busy} onClick={()=>file.current.click()}>读取成交证据并对照</button><button disabled={busy} onClick={()=>setBaseline(null)}>移除当前基线</button><p className="tp-note">公开演示不下单。加载完整合成案例会替换当前复盘材料及基线；已下载文件不受影响。</p></section>}

@@ -1,5 +1,11 @@
 # Product iteration — 2026-10-10
 
+## 2026-10-11 — page clear and budget-driven size analysis
+
+The account page's clear action now also resets the independent observation module and its polling state. Pending import/read completions cannot restore cleared page data. This does not delete exported files or stop the separately launched collector. Monitor copy now states five reads normally, at most six with bounded context catch-up.
+
+Plan comparison now offers bounded, snapshot-local size analysis under the user's margin/scenario-loss budgets, with endpoint transfer and independently replayable evidence. See BUDGET_SIZING.md. The next stages remain a multi-baseline local research workspace, a data-quality timeline and broader portfolio/lifecycle support; those are not claimed as delivered by this revision.
+
 ## Shipped scope: trade-level review
 
 The account workspace previously listed all opening orders, then all exits, then an unlabeled set of baseline comparisons. With multiple trades, a failed comparison could look like a failure of the whole imported history. Small fee differences could round to zero.
