@@ -22,8 +22,8 @@ const rootDir=path.resolve(import.meta.dirname,'..');
 await fs.mkdir(path.join(rootDir,'data'),{recursive:true});
 const temp=await fs.mkdtemp(path.join(rootDir,'data','ui-test-'));
 const outfile=path.join(temp,'components.mjs');
-await build({stdin:{contents:"export {DashboardContent} from './frontend-source/dashboard/DashboardContent.jsx';export {ResearchWorkbench} from './frontend-source/dashboard/ResearchWorkbench.jsx';export {AccountWorkbench} from './frontend-source/dashboard/AccountWorkbench.jsx';export {PlanComparison} from './frontend-source/dashboard/PlanComparison.jsx';export {Workspace} from './frontend-source/ui.jsx';",resolveDir:rootDir},bundle:true,format:'esm',platform:'node',packages:'external',loader:{'.css':'empty'},outfile});
-const {DashboardContent,ResearchWorkbench,AccountWorkbench,PlanComparison,Workspace}=await import(pathToFileURL(outfile));
+await build({stdin:{contents:"export {JudgeEvidence} from './frontend-source/dashboard/JudgeEvidence.jsx';export {DashboardContent} from './frontend-source/dashboard/DashboardContent.jsx';export {ResearchWorkbench} from './frontend-source/dashboard/ResearchWorkbench.jsx';export {AccountWorkbench} from './frontend-source/dashboard/AccountWorkbench.jsx';export {PlanComparison} from './frontend-source/dashboard/PlanComparison.jsx';export {Workspace} from './frontend-source/ui.jsx';",resolveDir:rootDir},bundle:true,format:'esm',platform:'node',packages:'external',loader:{'.css':'empty'},outfile});
+const {JudgeEvidence,DashboardContent,ResearchWorkbench,AccountWorkbench,PlanComparison,Workspace}=await import(pathToFileURL(outfile));
 const el=React.createElement,container=document.getElementById('root');
 const button=text=>[...container.querySelectorAll('button')].find(b=>b.textContent===text);
 async function click(text){assert.ok(button(text),`missing button ${text}`);await act(async()=>{button(text).click();});}
@@ -205,5 +205,16 @@ test('research UI separates plan mismatch from verified evidence and prepares th
   const n=container.querySelector('[aria-label="恢复研究工作区"]');Object.defineProperty(n,'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify(researchPacket({experiments:[e]}))}]});await act(async()=>n.dispatchEvent(new window.Event('change',{bubbles:true})));await settle();
   const progress=container.querySelector('[aria-label="本轮验收进度"]');assert.ok(progress.textContent.includes('事前对照已匹配'));assert.ok(progress.textContent.includes('计划条件与基线不符'));assert.ok(progress.textContent.includes('比较准入未通过'));assert.ok(!progress.textContent.includes('基线未匹配'));
   await click('准备多头预演（2× / 计划条件）');assert.deepEqual(prepared[0].plan,e.plan);
+ }finally{await act(async()=>root.unmount());}
+});
+
+
+test('judge entry labels real summary limits and keeps synthetic navigation and anonymous download explicit',async()=>{
+ const downloads=[],calls=[],root=createRoot(container);
+ try{
+  await act(async()=>root.render(el(JudgeEvidence,{onExample:()=>calls.push('synthetic'),onResearch:()=>calls.push('research'),download:p=>downloads.push(p)})));
+  assert.ok(container.textContent.includes('不是公开链上证明'));assert.ok(container.textContent.includes('原始档案未公开'));
+  await click('体验合成完整流程');await click('进入测试网实验台');await click('下载匿名验收摘要');assert.deepEqual(calls,['synthetic','research']);assert.equal(downloads[0].schema,'public-acceptance-summary-v1');assert.equal(downloads[0].independentlyVerifiableFromSummary,false);
+  assert.ok([...container.querySelectorAll('a')].some(a=>a.href.endsWith('/docs/JUDGE_GUIDE.md')));
  }finally{await act(async()=>root.unmount());}
 });

@@ -1,0 +1,21 @@
+{
+  "schema": "public-acceptance-summary-v1",
+  "reviewedOn": "2026-10-12",
+  "chainId": 10143,
+  "source": "private_archive_replay",
+  "independentlyVerifiableFromSummary": false,
+  "counts": {
+    "closedLifecycles": 2,
+    "longFull": 2,
+    "shortFull": 0,
+    "stagedExits": 0,
+    "baselineMatched": 1
+  },
+  "checks": [
+    "Saved receipt and REST identity consistency",
+    "Opening quantity and fees",
+    "Exit collateral, funding, fees and settlement",
+    "Earlier baseline association when available"
+  ],
+  "limitation": "Publisher-generated aggregate from replayed private archives. No raw account data, transaction identifiers or financial results. This summary alone is not an independently verifiable on-chain proof, current account state, finality proof or profitability claim."
+}

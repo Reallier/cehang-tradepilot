@@ -95,3 +95,9 @@ Open **测试网实验台** to track independent experiments, associate baseline
 ## 当前研究能力
 
 [能力与验收矩阵](docs/CURRENT_CAPABILITIES.md) · [研究流程升级与版本兼容](docs/RESEARCH_UPGRADE.md)。实验台支持可选的本机明文快照、后台复算、分批退出账本及固定条件计划；账户工作台可独立调整各市场价格、资金费和退出假设。真实测试网样本与合成测试分别标注，公开站点不下单。
+
+## Competition delivery
+
+[Judge entry](https://reallier.com/demos/tradepilot/?tab=competition) · [Submission text and checklist](docs/SUBMISSION.md) · [Anonymous acceptance summary](docs/EVIDENCE_SUMMARY.md) · [Brand source](assets/brand/tradepilot-mark.svg).
+
+The public summary is a publisher-generated report, not independently verifiable chain evidence. The selected private archive includes two closed long testnet lifecycles, one with a matched earlier baseline. Short and staged exits still require real samples. The site is an off-chain analytics interface to Monad/Perpl, not a new project-deployed trading contract.

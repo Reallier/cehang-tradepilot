@@ -1,4 +1,14 @@
-# Current acceptance: real baseline-to-fill-to-settlement lifecycle
+# Current verification scope — 2026-10-12
+
+Current trade-review v3 supports one opening followed by ordered partial exits and a final close, with one taker fill per exit. Synthetic long/short staged-exit tests cover this implementation; actual short/staged-exit chain samples remain pending. Increases, collateral changes, inversion, liquidation and builder-fee lifecycles remain unsupported. Older v2 packets keep their original, narrower replay rules.
+
+The selected archived research workspace was freshly replayed for the public [anonymous summary](EVIDENCE_SUMMARY.md): **2 distinct closed long lifecycles, 1 associated with a matching earlier baseline; 0 short and 0 staged-exit lifecycles**. This is a bounded selected archive, not an exhaustive account history or a new transaction run. Private identifiers and raw evidence remain local. The summary alone is not an independently verifiable on-chain proof.
+
+The narrative below records the earlier acceptance and its verifier at that time; dated historical limitations are not the current implementation matrix. See [CURRENT_CAPABILITIES.md](CURRENT_CAPABILITIES.md) and [RESEARCH_UPGRADE.md](RESEARCH_UPGRADE.md) for current coverage.
+
+---
+
+# Historical real acceptance: baseline-to-fill-to-settlement lifecycle
 
 The dedicated Monad Testnet account has completed one user-operated long opening and full close. A fresh read-only collection observed zero open positions, two order/fill/position history rows and both successful transaction receipts. Opening checks passed (18); closing checks passed (19), including returned collateral, signed funding, both fees, and account credit. A separate Python Decimal calculation reproduced price PnL, net PnL and final balance. Trading PnL excludes MON gas and deposit/withdrawal costs, which use separate transaction accounting.
 
@@ -10,7 +20,7 @@ A second user-operated testnet long opening matched a baseline saved before the 
 
 The user has now fully closed the second position. The final read-only observation contains four order/fill/position-history rows, four transaction receipts, and zero open positions. Both openings pass 18 checks each and both exits pass 19 checks each. A separate Python Decimal calculation reproduces the second exit price PnL, both fees, account credit and final account balance. The complete baseline-to-fill-to-settlement workspace reproduces through the CLI and was imported successfully into the deployed public frontend for browser-local recomputation. This verifies one real baseline-linked lifecycle, not strategy profitability or general execution quality. Private identifiers and results remain under ignored `data/account-readonly/reports/`.
 
-## Supported scope and remaining evidence
+## Scope of the earlier v2 acceptance and remaining real evidence
 
 - Single IOC opening followed by one full or partial close, one taker fill per order; REST and contract enum/index conventions are checked explicitly.
 - Synthetic regression covers long/short, partial IOC opening and partial/full exit. Only long/full-close has actual testnet evidence; synthetic cases are not claimed as real executions.

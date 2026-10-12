@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+<title id="title">CeHang TradePilot</title><desc id="desc">A compass bearing joined to a verification path on a dark terminal background.</desc>
+<rect width="1024" height="1024" rx="192" fill="#11131b"/>
+<circle cx="512" cy="512" r="320" fill="none" stroke="#303344" stroke-width="12"/>
+<path d="M512 154V210M814 512H870M512 814V870M154 512H210" stroke="#62677e" stroke-width="12" stroke-linecap="round"/>
+<path d="M716 294L571 656L491 513L348 433Z" fill="#9f8bff"/>
+<path d="M716 294L491 513L571 656Z" fill="#6f55dd"/>
+<path d="M312 600L401 689L531 559" fill="none" stroke="#f1f3fa" stroke-width="48" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

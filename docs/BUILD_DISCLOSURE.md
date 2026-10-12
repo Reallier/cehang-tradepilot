@@ -6,7 +6,7 @@ TradePilot is the Monad / Perpl competition adaptation. The separate Binance dep
 
 ## Work represented by this submission
 
-The project records document the following work in the current competition iteration (October 9–10, 2026):
+The project records document the following work in the current competition iteration (October 9–12, 2026):
 
 - Perpl public market adapter, cost/depth/funding assumptions and saved simulation evidence.
 - Independently buildable React trading/research terminal, without a proprietary application runtime.
@@ -19,6 +19,10 @@ The project records document the following work in the current competition itera
 - Dedicated HTTPS deployment and private user-operated testnet acceptance of the limited long/full-close workflow. Public cases remain synthetic.
 
 The initial public commit `c16f1785a93e98b7629df4235f0e22d5541d4c3f` is a publication baseline. **It is not a snapshot taken before the September 1 build window.** Comparing a later release to that commit shows later publication changes, not the complete set of work created during the competition. No commit dates or transaction timestamps have been backdated to suggest otherwise.
+
+## Subsequent competition work (October 11–12)
+
+Research archive merging and deduplicated comparison; worker-based replay and optional local recovery; per-market scenario analysis; sequential partial-exit verification; fixed-condition experiment plans with parameter enforcement; passive diagnostics with concurrent event retention; and the judge entry with a privacy-limited acceptance summary were added. See PUBLIC_LAUNCH.md for dated releases and CURRENT_CAPABILITIES.md for actual versus synthetic coverage. These changes do not imply new real testnet transactions or external user adoption.
 
 ## Third-party components
 
