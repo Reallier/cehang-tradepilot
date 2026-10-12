@@ -18,9 +18,10 @@ A passing row requires a supported direction, a reproduced testnet baseline, a v
 | Experiment | Current workspace acceptance |
 | --- | --- |
 | Long single opening and full exit | Supported; imported testnet and synthetic evidence counted separately |
-| Short single opening and full exit | Supported; further user-operated testnet evidence still needed |
+| Short single opening and full exit | Supported; one real short/full-close settlement checked; its baseline window was exceeded |
 | Size / leverage comparison | Separate single-lifecycle experiments can be recorded; cross-experiment attribution pending |
-| Multiple fills or partial exits | Planning and notes only; complete experiment acceptance pending |
+| Sequential partial exits | Supported in v3 for one opening followed by sequential exits, with one fill/event per order; one real long staged-exit settlement checked; its baseline window was exceeded |
+| Multiple fills within one order | Complete experiment acceptance pending; do not treat this as supported staged-exit evidence |
 | Funding-period observations | Planning and notes only; event/time-window attribution pending |
 | Long-running read-only monitoring | Existing monitor remains separate; experiment-level acceptance pending |
 

@@ -20,7 +20,7 @@ The account workspace supports portfolio risk, per-market scenarios and lifecycl
 
 The public demo requires no wallet, API key or deposit. It offers clearly labeled synthetic cases; personal evidence is processed in the browser. Optional browser-local research recovery is off by default. Public order submission is disabled on both networks.
 
-The selected private testnet archive has been replayed and summarized: two deduplicated completed long lifecycles, one with a matched earlier baseline. The public aggregate does not disclose account identifiers and is not independently verifiable chain proof. Actual short and staged-exit samples remain pending, while synthetic tests cover those implemented paths.
+The selected private testnet archive has been replayed and summarized: four deduplicated completed lifecycles: two long single-exit, one short single-exit and one long with two sequential exits. One earlier long lifecycle has a matched pre-trade baseline. The public aggregate does not disclose account identifiers and is not independently verifiable chain proof. The new short and staged-exit opening/settlement checks pass; both openings exceeded their saved baseline windows and are excluded from pre-trade comparison. Synthetic tests remain separate from real samples.
 
 TradePilot is an off-chain analytics interface integrating the existing Perpl protocol on Monad, not a newly deployed trading contract. A separate Binance research project informed the original workflow; competition-specific work and third-party components are disclosed in the repository. The project does not claim users, TVL, revenue, partnerships or proven strategy profitability.
 
@@ -64,6 +64,7 @@ python scripts/export-logo.py /absolute/tradepilot-logo-1024.png
 - [ ] Confirmed real team introduction and motivation video uploaded
 - [ ] Organizer acceptance of the analytics integration/deployment interpretation; do not infer eligibility from a running website
 - [ ] Final form fields, image and links verified and submitted
-- [ ] Optional: real short/staged-exit samples and external task feedback
+- [x] Real short/full-close and long staged-exit settlement samples (pre-trade comparison excluded for these two late openings)
+- [ ] Matched-baseline short/staged-exit samples and external task feedback
 
 The optional 30-second advertisement can be omitted. Never include API secrets, private account packets or fabricated user/transaction evidence in the form.

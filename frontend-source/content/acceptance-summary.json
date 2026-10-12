@@ -5,10 +5,10 @@
   "source": "private_archive_replay",
   "independentlyVerifiableFromSummary": false,
   "counts": {
-    "closedLifecycles": 2,
+    "closedLifecycles": 4,
     "longFull": 2,
-    "shortFull": 0,
-    "stagedExits": 0,
+    "shortFull": 1,
+    "stagedExits": 1,
     "baselineMatched": 1
   },
   "checks": [

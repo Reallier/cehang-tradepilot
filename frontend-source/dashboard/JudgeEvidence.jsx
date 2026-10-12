@@ -10,7 +10,7 @@ export function JudgeEvidence({onExample,onResearch,download}){
  <tr><td>合成案例</td><td>账户工作台 · 体验完整案例</td><td>可交互、可导出的功能演示；没有真实链上成交</td></tr>
  <tr><td>真实测试网历史档案</td><td>下方匿名摘要；原始档案未公开</td><td>项目方本机复算的限定样本；摘要不能供外部独立验证链上交易</td></tr>
  </tbody></table></div>
- <h3>真实测试网档案复算摘要</h3><p className="tp-note">复核日期 {summary.reviewedOn} · Monad Testnet（{summary.chainId}）· 按开仓身份去重。统计已有档案，不代表今天发起了新交易。</p>
+ <h3>真实测试网档案复算摘要</h3><p className="tp-note">复核日期 {summary.reviewedOn} · Monad Testnet（{summary.chainId}）· 按开仓身份去重。统计选定的已归档生命周期，不代表账户全部交易；结算与基线匹配分别计数。</p>
  <dl className="judge-counts">{[['完整开平仓',c.closedLifecycles],['多头单次退出',c.longFull],['空头单次退出',c.shortFull],['连续分批退出',c.stagedExits],['匹配事前基线',c.baselineMatched]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
  <p>复核包含开仓数量及费用、退出结算与抵押返还、保存回执与历史接口的一致性；只有对应基线匹配时才计入事前对照。未匹配的完整结算不会冒充事前对照通过。</p>
  <p className="tp-alert">这是项目方生成的匿名验收摘要，不是公开链上证明。真实资金与公开自动下单关闭；尚未取得真实样本的能力仍显示待验收。复算不证明策略收益或当前链最终性。</p>
