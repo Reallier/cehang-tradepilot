@@ -1,4 +1,17 @@
-# Current release — review repairs
+# Current release — judge entry and submission materials
+
+- Released 2026-10-12 at https://reallier.com/demos/tradepilot/?tab=competition . Runtime source `25aed1eeb03210c74b6a327740eca1f5d5ed661e`; image `localhost/tradepilot-demo:8ddc6ad456c6`; config digest `df05eecfbe761ffca60b183ef33fd53793f9be72ce9121c933b63ae2716883e1`; archive SHA-256 `8ddc6ad456c62fba40df00b7abbc9b56cda6b046386f4008c0d3f2bc579a4230`. Later documentation commits do not change this runtime.
+- Judge entry provides direct links, source-category explanations, an anonymous acceptance download and a synthetic-case entry. Selected private archived evidence was replayed locally: 2 deduplicated closed long lifecycles, 1 with a matched earlier baseline; 0 short/staged-exit samples. No account identifiers, raw packets or financial results were published. This aggregate is not independently verifiable on-chain proof.
+- Historical v2 limitations are now labeled historical; current v3 sequential-exit implementation and missing actual samples are explicit. Submission text, acquisition hypotheses, judge access, disclosure and a geometric brand source/PNG export command are ready. Videos, external feedback, organizer eligibility confirmation and final submission remain incomplete.
+- 181/181 tests passed. 207-file privacy scan, source/runtime Gitleaks, build and whitespace checks passed. Canonical source synchronization preserved its pre-existing Git index. Dependencies and resource limits were unchanged.
+- Local IAB acceptance verified the entry layout, anonymous download matching source JSON and one-click navigation to a baseline-matched fully settled synthetic case. Temporary tab/server were closed. No new public interactive-browser or mobile acceptance is claimed.
+- Public HTTPS checks confirmed all 13 non-HTML application assets match; all 14 packaged application files match the running container. Internal build metadata was omitted from this package and remains 404. HTML retains its application prefix with existing Cloudflare injection. Health/session keep trading disabled; private paths remain unavailable and order endpoints return 403. Public synthetic evidence independently replays.
+- Pod `tradepilot-596c7669f6-lww45` was 1/1 Ready with zero restarts; one sample was 1m CPU / 25 MiB, not a load benchmark. Rollback `releases/8ddc6ad456c6/previous-demo.yaml` restores `907b4c56ba56`.
+- See [SUBMISSION.md](SUBMISSION.md), [JUDGE_GUIDE.md](JUDGE_GUIDE.md) and [EVIDENCE_SUMMARY.md](EVIDENCE_SUMMARY.md). The website is an off-chain interface to the existing Monad/Perpl protocol, not a newly deployed project-authored smart contract.
+
+---
+
+# Previous release — review repairs
 
 - Released 2026-10-12 at https://reallier.com/demos/tradepilot/ . Runtime source `68056c6f69ae0788453f1e7701034f6c32abb3c2` is published on GitHub; subsequent documentation commits do not change this image.
 - Image `localhost/tradepilot-demo:907b4c56ba56`; config digest `845b4805b671f6578a77e220c4e88c811163e5d2b966eb05e8ace17e8451c394`; archive SHA-256 `907b4c56ba5612c6b536d0ed3d049565f35ae21e55d06f8fe5f1d88d24e862a0`. Rollback `releases/907b4c56ba56/previous-demo.yaml` restores `0786389e5af5`.
